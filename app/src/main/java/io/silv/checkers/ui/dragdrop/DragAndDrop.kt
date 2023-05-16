@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,9 +18,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
-import io.silv.checkers.DragTargetInfo
-import io.silv.checkers.LocalDragInfo
-import io.silv.checkers.ui.Cord
+
+class DragTargetInfo {
+    var isDragging: Boolean by mutableStateOf(false)
+    var draggedCord: Cord? by mutableStateOf(null)
+    var dragPosition by mutableStateOf(Offset.Zero)
+    var dragOffset by mutableStateOf(Offset.Zero)
+    var draggableComposable by mutableStateOf<(@Composable () -> Unit)?>(null)
+    var dataToDrop by mutableStateOf<Any?>(null)
+}
+
+val LocalDragInfo = compositionLocalOf { DragTargetInfo() }
 
 @Composable
 fun DraggableContainer(

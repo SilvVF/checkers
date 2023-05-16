@@ -1,31 +1,40 @@
 package io.silv.checkers.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.silv.checkers.CircleTarget
-import io.silv.checkers.LocalDragInfo
-import io.silv.checkers.spaceBgColor
+import io.silv.checkers.ui.dragdrop.Cord
+import io.silv.checkers.ui.dragdrop.DragTarget
 import io.silv.checkers.ui.dragdrop.DraggableContainer
+import io.silv.checkers.ui.dragdrop.DropData
 import io.silv.checkers.ui.dragdrop.DropTarget
+import io.silv.checkers.ui.dragdrop.LocalDragInfo
+import io.silv.checkers.ui.dragdrop.spaceBgColor
 
-typealias DropData = Pair<Cord, Piece>
-typealias Cord = Pair<Int, Int>
-
-sealed class Piece(val value: Int, val color: Color)
+@Immutable
+sealed class Piece(
+    val value: Int,
+    val color: Color,
+)
 
 object Empty: Piece(0, Color.Transparent)
-object Red: Piece(1, Color.Red)
-object Blue: Piece(2, Color.Blue)
+
+data class Red(val crowned: Boolean = false): Piece(1, Color.Red)
+
+data class Blue(val crowned: Boolean = false): Piece(2, Color.Blue)
 
 @Composable
 fun CheckerBoard(
@@ -35,8 +44,6 @@ fun CheckerBoard(
     DraggableContainer(Modifier.fillMaxSize()) {
 
         val dragInfo = LocalDragInfo.current
-
-
 
         Column(
             modifier = Modifier
@@ -88,7 +95,7 @@ fun CheckerSpace(
         }
         
         when (piece) {
-            Red, Blue -> CircleTarget(
+            is Red, is Blue -> CircleTarget(
                 data = gridPos to piece,
                 color = if (dragInfo.draggedCord == gridPos) {
                     Color.Green
@@ -101,5 +108,30 @@ fun CheckerSpace(
             )
             else -> Unit
         }
+    }
+}
+
+@Composable
+fun Circle(color: Color) = Box(
+    modifier = Modifier
+        .fillMaxSize()
+        .clip(CircleShape)
+        .background(color)
+)
+
+@Composable
+fun CircleTarget(
+    modifier: Modifier = Modifier,
+    data: DropData,
+    color: Color
+) {
+
+
+    DragTarget(
+        modifier = modifier,
+        dataToDrop = data,
+        gridPos = data.first
+    ) {
+        Circle(color)
     }
 }
