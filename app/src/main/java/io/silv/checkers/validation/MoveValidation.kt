@@ -118,24 +118,49 @@ fun validateJump(
     piece: Piece,
     direction: XYDirection
 ): Boolean {
-    return when (piece) {
-        is Red -> {
-            when (direction) {
-                XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Blue
-                XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Blue
-                else -> false
+    if (!piece.crowned) {
+        return when (piece) {
+            is Red -> {
+                when (direction) {
+                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Blue
+                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Blue
+                    else -> false
+                }
             }
-        }
-        is Blue -> {
-            when (direction) {
-                XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Red
-                XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Red
-                else -> false
+            is Blue -> {
+                when (direction) {
+                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Red
+                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Red
+                    else -> false
+                }
             }
+            else -> false
         }
-        else -> false
+    } else { // crowned
+        return when (piece) {
+            is Red -> {
+                when (direction) {
+                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Blue
+                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Blue
+                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Blue
+                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Blue
+                    else -> false
+                }
+            }
+            is Blue -> {
+                when (direction) {
+                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Red
+                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Red
+                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Red
+                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Red
+                    else -> false
+                }
+            }
+            else -> false
+        }
     }
 }
+
 
 fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResult {
     val piece = board[from.first][from.second]
@@ -150,10 +175,11 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
     val yDirection = getYDirection(difY)
     val xyDirection = getXyDirection(xDirection, yDirection)
 
+
     // make sure move is not retreating from opponent
     if (
-        (piece is Red && yDirection != YDirection.Down) ||
-        (piece is Blue && yDirection != YDirection.Up)
+        (piece is Red && yDirection != YDirection.Down) && !piece.crowned ||
+        (piece is Blue && yDirection != YDirection.Up) && !piece.crowned
     ) {
         return bad
     }
