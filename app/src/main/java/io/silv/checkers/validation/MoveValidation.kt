@@ -119,42 +119,29 @@ fun validateJump(
     direction: XYDirection
 ): Boolean {
     if (!piece.crowned) {
-        return when (piece) {
+        return when (piece) { // piece is not crowned and can only move in specific XYDirection's
             is Red -> {
                 when (direction) {
-                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Blue
-                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Blue
+                    XYDirection.DownLeft, XYDirection.DownRight -> board.getDiagonal(from, direction) is Blue
                     else -> false
                 }
             }
             is Blue -> {
                 when (direction) {
-                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Red
-                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Red
+                    XYDirection.UpLeft, XYDirection.UpRight  ->  board.getDiagonal(from, direction) is Red
                     else -> false
                 }
             }
             else -> false
         }
     } else { // crowned
+        // can move any XYDirection except None getDiagonal returns null if direction is XYDirection.None
         return when (piece) {
             is Red -> {
-                when (direction) {
-                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Blue
-                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Blue
-                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Blue
-                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Blue
-                    else -> false
-                }
+                board.getDiagonal(from, direction) is Blue
             }
             is Blue -> {
-                when (direction) {
-                    XYDirection.DownRight -> board.getDiagonal(from, XYDirection.DownRight) is Red
-                    XYDirection.DownLeft -> board.getDiagonal(from, XYDirection.DownLeft) is Red
-                    XYDirection.UpLeft ->  board.getDiagonal(from, XYDirection.UpLeft) is Red
-                    XYDirection.UpRight ->  board.getDiagonal(from, XYDirection.UpRight) is Red
-                    else -> false
-                }
+               board.getDiagonal(from, direction) is Red
             }
             else -> false
         }
