@@ -192,6 +192,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
                 }
             }
             else -> { // moved distance greater than one hop which is invalid
+                    // double jumps happen one move at a time
                 bad
             }
         }
