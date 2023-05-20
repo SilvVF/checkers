@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.silv.checkers.Turn
 import io.silv.checkers.ui.dragdrop.Cord
 import io.silv.checkers.ui.dragdrop.DragTarget
 import io.silv.checkers.ui.dragdrop.DraggableContainer
