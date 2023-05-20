@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.ir.backend.js.compile
+import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
+
 plugins {
     id ("com.android.application")
     id ("org.jetbrains.kotlin.android")
@@ -78,6 +81,9 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.lottie.compose)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.android)
+    implementation(libs.koin.navigation)
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     // Add the dependency for the Firebase Authentication library
@@ -88,4 +94,5 @@ dependencies {
     // Add the dependency for the Realtime Database library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-database-ktx")
+
 }

@@ -2,36 +2,52 @@ package io.silv.checkers
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.google.firebase.database.DatabaseReference
-import io.silv.checkers.firebase.Fb
+import com.google.firebase.database.Exclude
+import com.google.firebase.database.IgnoreExtraProperties
 import io.silv.checkers.ui.dragdrop.generateInitialBoard
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.UUID
 
+@IgnoreExtraProperties
 data class Room(
-    val id: String,
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
-    val turn: Int = 1,
-    val users: List<String>,
-    val board: List<List<Piece>> = generateInitialBoard()
-)
+    val users: Map<String, Int> = mapOf(),
+    val turn: Int,
+    val createdAt: Long
+) {
 
-fun Room.pushToDb(db: DatabaseReference) {
-    db.child(Fb.roomsKey)
-        .child(id).apply {
-            this.child(Fb.boardKey).setValue(
-                board.encodeToJsonPieceList()
-            )
-            this.child(Fb.turnKey).setValue(turn)
-            this.child(Fb.nameKey).setValue(name)
+    @Exclude
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "id" to id,
+            "name" to name ,
+            "users" to users,
+            "turn" to turn,
+            "createdAt" to createdAt,
+        )
+    }
+}
+
+@IgnoreExtraProperties
+data class Board(
+    val roomId: String,
+    val data: JsonPieceList = JsonPieceList(
+        list = generateInitialBoard().map {
+            it.map { p -> p.toJsonPiece() }
         }
-        .child(Fb.usersKey)
-        .child(Fb.userIdKey)
-        .apply {
-            users.forEach { uid ->
-                this.child(uid).setValue(true)
-            }
-        }
+    )
+) {
+
+    @Exclude
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "roomId" to roomId,
+            "data" to Json.encodeToString(data)
+        )
+    }
 }
 
 
@@ -50,12 +66,6 @@ data class JsonPiece(
     val crowned: Boolean
 )
 
-fun JsonPiece.toPiece() = when(value) {
-    1 -> Red(crowned)
-    2 -> Blue(crowned)
-    else -> Empty
-}
-
 fun Piece.toJsonPiece() = when(this) {
     is Red -> JsonPiece(1, crowned)
     is Blue -> JsonPiece(2, crowned)
@@ -69,12 +79,6 @@ sealed class Piece(
     open val crowned: Boolean,
 )
 
-fun List<List<Piece>>.encodeToJsonPieceList() = Json.encodeToString(
-    JsonPieceList.serializer(),
-    JsonPieceList(
-        this.map { it.map { p -> p.toJsonPiece() } }
-    )
-)
 
 
 object Empty: Piece(0, Color.Transparent, false)

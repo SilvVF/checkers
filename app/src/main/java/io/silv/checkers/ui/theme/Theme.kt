@@ -64,7 +64,53 @@ fun DragDropTestTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = Typography.copy(
+            displayLarge = Typography.displayLarge.copy(
+                fontFamily = varela
+            ),
+            displayMedium = Typography.displayMedium.copy(
+                fontFamily = varela
+            ),
+            displaySmall = Typography.displaySmall.copy(
+                fontFamily = varela
+            ),
+            headlineLarge = Typography.headlineLarge.copy(
+                fontFamily = varela
+            ),
+            headlineMedium = Typography.headlineMedium.copy(
+                fontFamily = varela
+            ),
+            headlineSmall = Typography.headlineSmall.copy(
+                fontFamily = varela
+            ),
+            titleLarge = Typography.titleLarge.copy(
+                fontFamily = varela
+            ),
+            titleMedium = Typography.titleMedium.copy(
+                fontFamily = varela
+            ),
+            titleSmall = Typography.titleSmall.copy(
+                fontFamily = varela
+            ),
+            bodyLarge = Typography.bodyLarge.copy(
+                fontFamily = varela
+            ),
+            bodyMedium = Typography.bodyMedium.copy(
+                fontFamily = varela
+            ),
+            bodySmall = Typography.bodySmall.copy(
+                fontFamily = varela
+            ),
+            labelLarge = Typography.labelLarge.copy(
+                fontFamily = varela
+            ),
+            labelMedium = Typography.labelMedium.copy(
+                fontFamily = varela
+            ),
+            labelSmall = Typography.labelSmall.copy(
+                fontFamily = varela
+            )
+        ),
         content = content
     )
 }

@@ -1,63 +1,88 @@
 package io.silv.checkers.firebase
 
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
-import io.silv.checkers.JsonPieceList
+import io.silv.checkers.Board
 import io.silv.checkers.Room
-import io.silv.checkers.toPiece
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 object Fb {
 
-    lateinit var auth: FirebaseAuth
-
-    lateinit var database: DatabaseReference
-
     const val roomsKey = "rooms"
-    const val usersKey = "users"
-    const val userIdKey = "userId"
-    const val boardKey = "board"
-    const val turnKey = "turn"
-    const val nameKey = "name"
+    const val boardKey = "boards"
 }
 
+fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String) = callbackFlow {
+    val key = this@createRoomFlow.child(Fb.roomsKey).push().key ?: kotlin.run {
+        close(IllegalStateException("unable to create room"))
+        return@callbackFlow
+    }
+    val room = Room(
+        id = key,
+        name = name,
+        users = mapOf(userId to color),
+        turn = listOf(1, 2).random(),
+        createdAt = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+    )
+    val roomValues = room.toMap()
+    val boardValues = Board(key)
 
-fun DatabaseReference.roomStateFlow(id: String) = callbackFlow {
-    val listener = object : ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            trySend(
-                Room(
-                    id = id,
-                    name = dataSnapshot.child(Fb.nameKey).getValue<String>() ?: return,
-                    turn = dataSnapshot.child(Fb.turnKey).getValue<Int>() ?: return,
-                    users = dataSnapshot.child(Fb.usersKey).children.mapNotNull { child ->
-                        child.key
-                    },
-                    board = Json.decodeFromString(
-                        JsonPieceList.serializer(),
-                        dataSnapshot.child(Fb.boardKey).getValue<String>() ?: return
-                    ).list.map { jsonList ->
-                        jsonList.map { jsonPiece ->
-                            jsonPiece.toPiece()
-                        }
-                    }
-                )
-            )
+    val childUpdates = mapOf(
+        "/${Fb.roomsKey}/$key" to roomValues,
+        "/${Fb.boardKey}/$key" to boardValues
+    )
+    this@createRoomFlow.updateChildren(childUpdates)
+        .addOnSuccessListener {
+            trySend(key)
         }
+        .addOnFailureListener {
+            close(it)
+        }
+    awaitClose()
+}
 
+fun DatabaseReference.roomsFlow() = callbackFlow {
+    val roomsListener = object : ValueEventListener {
+
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            val rooms = dataSnapshot.children.mapNotNull {
+                it.getValue<Room>()
+            }
+            trySend(rooms)
+        }
         override fun onCancelled(databaseError: DatabaseError) {
             // Getting Post failed, log a message
             Log.w("TAG", "loadPost:onCancelled", databaseError.toException())
-            channel.close()
+            close(databaseError.toException())
         }
     }
-    this@roomStateFlow.child(Fb.roomsKey).child(id).addValueEventListener(listener)
-    awaitClose { this@roomStateFlow.removeEventListener(listener) }
+    val roomsNode = this@roomsFlow.child(Fb.roomsKey)
+    roomsNode.addValueEventListener(roomsListener)
+    awaitClose { roomsNode.removeEventListener(roomsListener) }
+}
+
+fun DatabaseReference.roomStateFlow(id: String) = callbackFlow {
+    val roomListener = object : ValueEventListener {
+
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+           dataSnapshot.getValue<Room>()?.let {
+               trySend(it)
+           }
+        }
+        override fun onCancelled(databaseError: DatabaseError) {
+            // Getting Post failed, log a message
+            Log.w("TAG", "loadPost:onCancelled", databaseError.toException())
+            close(databaseError.toException())
+        }
+    }
+    val roomIdNode = this@roomStateFlow.child(Fb.roomsKey).child(id)
+    roomIdNode.addValueEventListener(roomListener)
+    awaitClose { roomIdNode.removeEventListener(roomListener) }
 }
