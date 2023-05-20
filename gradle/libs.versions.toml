@@ -5,6 +5,7 @@ androidxTestEspressoCore = "3.5.1"
 testJunit = "1.1.5"
 junit= "4.13.2"
 firebase="32.0.0"
+lottie = "6.0.0"
 
 [libraries]
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
@@ -23,6 +24,8 @@ junit={module = "junit:junit", version.ref ="junit"}
 
 firebase-bom= { module="com.google.firebase:firebase-bom", version.ref="firebase"}
 firebase-analytics= {module="com.google.firebase:firebase-analytics-ktx"}
+
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref="lottie" }
 
 [plugins]
 

@@ -1,8 +1,8 @@
 plugins {
     id ("com.android.application")
     id ("org.jetbrains.kotlin.android")
-    id ("org.jetbrains.kotlin.plugin.serialization") version "1.8.21"
     id("com.google.gms.google-services")
+    kotlin("plugin.serialization") version "1.8.10"
 }
 
 android {
@@ -77,4 +77,15 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.manifest)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.lottie.compose)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // Also add the dependency for the Google Play services library and specify its version
+    implementation("com.google.android.gms:play-services-auth:20.5.0")
+    // Add the dependency for the Realtime Database library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-database-ktx")
 }

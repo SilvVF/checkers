@@ -1,10 +1,10 @@
 package io.silv.checkers.validation
 
-import io.silv.checkers.ui.Blue
-import io.silv.checkers.ui.Empty
-import io.silv.checkers.ui.Piece
-import io.silv.checkers.ui.Red
-import io.silv.checkers.ui.dragdrop.Cord
+import io.silv.checkers.Blue
+import io.silv.checkers.Cord
+import io.silv.checkers.Empty
+import io.silv.checkers.Piece
+import io.silv.checkers.Red
 import kotlin.math.abs
 
 sealed interface Direction

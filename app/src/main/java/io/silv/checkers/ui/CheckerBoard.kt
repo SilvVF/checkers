@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -15,32 +14,23 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.silv.checkers.ui.dragdrop.Cord
+import io.silv.checkers.Blue
+import io.silv.checkers.Cord
+import io.silv.checkers.DropData
+import io.silv.checkers.Piece
+import io.silv.checkers.Red
+import io.silv.checkers.screens.Turn
 import io.silv.checkers.ui.dragdrop.DragTarget
 import io.silv.checkers.ui.dragdrop.DraggableContainer
-import io.silv.checkers.ui.dragdrop.DropData
 import io.silv.checkers.ui.dragdrop.DropTarget
 import io.silv.checkers.ui.dragdrop.LocalDragInfo
 import io.silv.checkers.ui.dragdrop.spaceBgColor
 
-@Immutable
-sealed class Piece(
-    val value: Int,
-    val color: Color,
-    open val crowned: Boolean,
-)
-
-object Empty: Piece(0, Color.Transparent, false)
-
-data class Red(override val crowned: Boolean = false): Piece(1, Color.Red, crowned)
-
-data class Blue(override val crowned: Boolean = false): Piece(2, Color.Blue, crowned)
 
 @Composable
 fun CheckerBoard(
@@ -96,7 +86,7 @@ fun CheckerSpace(
             gridPos.spaceBgColor()
         ),
         gridPos = gridPos
-    ) { _, data ->
+    ) { _, data: DropData? ->
 
         data?.let { (fromIdx, piece) ->
             dropEvent(fromIdx, piece)

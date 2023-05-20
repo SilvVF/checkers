@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">restraunt</string>
+    <string name="app_name">checkers</string>
+    <string name="google">google</string>
+    <string name="google_sign_in">Continue with Google</string>
 </resources>

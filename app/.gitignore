@@ -1,2 +1,4 @@
 /build
 google-services.json
+/src/main/java/io/silv/api
+/src/main/java/io/silv/api/keys

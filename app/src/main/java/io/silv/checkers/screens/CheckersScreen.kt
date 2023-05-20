@@ -1,4 +1,4 @@
-package io.silv.checkers.ui
+package io.silv.checkers.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
@@ -7,6 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import io.silv.checkers.Blue
+import io.silv.checkers.Empty
+import io.silv.checkers.Piece
+import io.silv.checkers.Red
+import io.silv.checkers.ui.CheckerBoard
 import io.silv.checkers.ui.dragdrop.generateInitialBoard
 import io.silv.checkers.validation.validatePlacement
 
