@@ -2,5 +2,5 @@
     <string name="app_name">checkers</string>
     <string name="google">google</string>
     <string name="google_sign_in">Continue with Google</string>
-    <string name="room_name_hint">enter a room name</string>
+    <string name="room_name_hint">Enter a room name</string>
 </resources>

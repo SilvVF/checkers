@@ -7,6 +7,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import io.silv.checkers.MainActivityViewModel
 import io.silv.checkers.screens.CreateRoomViewModel
+import io.silv.checkers.screens.SearchRoomViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -19,4 +20,6 @@ val appModule = module {
     viewModelOf(::CreateRoomViewModel)
 
     viewModelOf(::MainActivityViewModel)
+
+    viewModelOf(::SearchRoomViewModel)
 }

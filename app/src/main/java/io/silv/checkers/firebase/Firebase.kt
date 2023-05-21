@@ -28,7 +28,6 @@ fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String) =
         id = key,
         name = name,
         users = mapOf(userId to color),
-        turn = listOf(1, 2).random(),
         createdAt = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
     )
     val roomValues = room.toMap()
@@ -53,7 +52,9 @@ fun DatabaseReference.roomsFlow() = callbackFlow {
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             val rooms = dataSnapshot.children.mapNotNull {
-                it.getValue<Room>()
+                runCatching { it.getValue<Room>() }
+                    .onFailure { it.printStackTrace() }
+                    .getOrNull()
             }
             trySend(rooms)
         }

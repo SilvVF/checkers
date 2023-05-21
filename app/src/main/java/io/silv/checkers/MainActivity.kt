@@ -22,6 +22,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DatabaseReference
 import io.silv.checkers.firebase.roomStateFlow
 import io.silv.checkers.screens.CreateRoomScreen
+import io.silv.checkers.screens.SearchRoomScreen
 import io.silv.checkers.ui.theme.DragDropTestTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -89,14 +90,15 @@ class MainActivity : ComponentActivity() {
 
             DragDropTestTheme {
                 Scaffold(Modifier.fillMaxSize()) { paddingValues ->
-                    CreateRoomScreen(
-                        paddingValues = paddingValues,
-                        showSnackBar = { reason ->
-                            Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
-                        }
-                    ) { roomId ->
-                        Toast.makeText(context, roomId,Toast.LENGTH_SHORT).show()
-                    }
+                    SearchRoomScreen(paddingValues = paddingValues)
+//                    CreateRoomScreen(
+//                        paddingValues = paddingValues,
+//                        showSnackBar = { reason ->
+//                            Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
+//                        }
+//                    ) { roomId ->
+//                        Toast.makeText(context, roomId,Toast.LENGTH_SHORT).show()
+//                    }
                 }
             }
         }

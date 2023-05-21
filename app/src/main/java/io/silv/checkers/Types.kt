@@ -13,10 +13,10 @@ import java.util.UUID
 @IgnoreExtraProperties
 data class Room(
     val id: String = UUID.randomUUID().toString(),
-    val name: String,
+    val name: String ="",
     val users: Map<String, Int> = mapOf(),
-    val turn: Int,
-    val createdAt: Long
+    val moveTime: Int = 1,
+    val createdAt: Long = 0L
 ) {
 
     @Exclude
@@ -25,7 +25,7 @@ data class Room(
             "id" to id,
             "name" to name ,
             "users" to users,
-            "turn" to turn,
+            "moveTime" to moveTime,
             "createdAt" to createdAt,
         )
     }
@@ -34,18 +34,22 @@ data class Room(
 @IgnoreExtraProperties
 data class Board(
     val roomId: String,
+    val turn: Int = listOf(1, 2).random(),
     val data: JsonPieceList = JsonPieceList(
         list = generateInitialBoard().map {
             it.map { p -> p.toJsonPiece() }
         }
-    )
+    ),
+    val moves: Map<String, Pair<Cord, Cord>> = emptyMap()
 ) {
 
     @Exclude
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "roomId" to roomId,
-            "data" to Json.encodeToString(data)
+            "data" to Json.encodeToString(data),
+            "moves" to moves,
+            "turn" to turn
         )
     }
 }
