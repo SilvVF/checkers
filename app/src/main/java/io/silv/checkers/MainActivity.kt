@@ -2,6 +2,7 @@ package io.silv.checkers
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -12,6 +13,7 @@ import io.silv.checkers.navigation.MainNavTarget
 import io.silv.checkers.navigation.RootNode
 import io.silv.checkers.ui.theme.DragDropTestTheme
 import io.silv.checkers.viewmodels.MainActivityViewModel
+import kotlinx.coroutines.flow.first
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -24,17 +26,18 @@ class MainActivity : NodeComponentActivity() {
 
         setContent {
 
+            @VisibleForTesting
             val vm: MainActivityViewModel = koinViewModel()
 
-            val authed by vm.authed.collectAsState()
+            val user = vm.user.collectAsState().value
 
             DragDropTestTheme {
                 NodeHost(integrationPoint = appyxIntegrationPoint) {
                     RootNode(
-                        initialElement = if (authed) {
-                            MainNavTarget.Checkers("", null)
+                        initialElement = if (true) {
+                            MainNavTarget.Checkers(user)
                         } else {
-                            MainNavTarget.Checkers("", null)
+                            MainNavTarget.LoggedOut
                         },
                         buildContext = it,
                         viewModel = vm
