@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
@@ -45,7 +44,6 @@ import io.silv.checkers.ui.rememberIsImeVisible
 import io.silv.checkers.viewmodels.SearchRoomViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)

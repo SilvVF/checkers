@@ -3,6 +3,7 @@ plugins {
     id ("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("kotlin-parcelize")
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
     kotlin("plugin.serialization") version "1.8.10"
 }
 
@@ -30,12 +31,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            setProguardFiles(
-                listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    File("proguard-rules.pro")
-                )
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -55,6 +51,18 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set("0.22.0")
+    android.set(true)
+    outputToConsole.set(true)
+    outputColorName.set("RED")
+    ignoreFailures.set(true)
+    filter {
+        exclude("**/generated/**")
+        include("**/kotlin/**")
     }
 }
 
