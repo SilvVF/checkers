@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import com.bumble.appyx.core.integration.NodeHost
 import com.bumble.appyx.core.integrationpoint.NodeComponentActivity
+import io.silv.checkers.navigation.MainNavTarget
 import io.silv.checkers.navigation.RootNode
 import io.silv.checkers.ui.theme.DragDropTestTheme
 import io.silv.checkers.viewmodels.MainActivityViewModel
@@ -27,11 +28,17 @@ class MainActivity : NodeComponentActivity() {
 
             val authed by vm.authed.collectAsState()
 
-            val context = LocalContext.current
-
             DragDropTestTheme {
                 NodeHost(integrationPoint = appyxIntegrationPoint) {
-                    RootNode(it)
+                    RootNode(
+                        initialElement = if (authed) {
+                            MainNavTarget.Checkers("", null)
+                        } else {
+                            MainNavTarget.Checkers("", null)
+                        },
+                        buildContext = it,
+                        viewModel = vm
+                    )
                 }
             }
         }

@@ -68,7 +68,7 @@ fun SearchRoomScreen(
 
     if(jumpToTopVisible) {
        Popup(
-           alignment = Alignment.BottomCenter,
+           alignment = Alignment.BottomEnd,
            IntOffset(0, -200)
        ) {
            Button(

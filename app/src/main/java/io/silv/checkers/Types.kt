@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
-import io.silv.checkers.ui.dragdrop.generateInitialBoard
+import io.silv.checkers.usecase.generateInitialBoard
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -14,9 +14,9 @@ import java.util.UUID
 data class Room(
     val id: String = UUID.randomUUID().toString(),
     val name: String ="",
-    val users: Map<String, Int> = mapOf(),
-    val moveTime: Int = 1,
-    val createdAt: Long = 0L
+    val usersToColorChoice: Map<String, Int> = mapOf(),
+    val moveTimeSeconds: Int = 1,
+    val createdAtEpochSecond: Long = 0L
 ) {
 
     @Exclude
@@ -24,10 +24,23 @@ data class Room(
         return mapOf(
             "id" to id,
             "name" to name ,
-            "users" to users,
-            "moveTime" to moveTime,
-            "createdAt" to createdAt,
+            "usersToColorChoice" to usersToColorChoice,
+            "moveTimeSeconds" to moveTimeSeconds,
+            "createdAtEpochSecond" to createdAtEpochSecond,
         )
+    }
+}
+
+@IgnoreExtraProperties
+data class User(
+    val id: String,
+    val joinedRoomId: String,
+) {
+
+    @Exclude
+    fun toMap() {
+        "id" to id
+        "joinedRoomId" to joinedRoomId
     }
 }
 

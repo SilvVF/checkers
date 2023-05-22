@@ -165,7 +165,7 @@ fun CreateRoomScreen(
       )
       Spacer(modifier = Modifier.height(32.dp))
       Button(
-         enabled = !creatingRoom,
+         enabled = !creatingRoom && roomName.isNotEmpty(),
          onClick = {
             if (creatingRoom) { return@Button }
             creatingRoom = true

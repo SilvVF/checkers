@@ -1,20 +1,34 @@
 package io.silv.checkers.navigation
 
 import android.os.Parcelable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import com.bumble.appyx.core.composable.Children
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.activeElement
+import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import com.google.android.gms.auth.api.identity.SignInCredential
 import io.silv.checkers.screens.CheckersScreen
@@ -90,7 +104,40 @@ class Checkers(
         }
     @Composable
     override fun View(modifier: Modifier) {
-            Scaffold(Modifier.fillMaxSize()) { paddingValues ->
+        val currentScreen by remember {
+            derivedStateOf { backStack.activeElement }
+        }
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                BottomAppBar(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(
+                        modifier = Modifier.graphicsLayer {
+                            if (currentScreen is LoggedInNavTarget) {
+                                scaleX = 1.5f
+                                scaleY = 1.5f
+                            }
+                        },
+                        onClick = { backStack.push(LoggedInNavTarget.SearchRooms) }
+                    ) {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                    }
+                    IconButton(
+                        modifier = Modifier.graphicsLayer {
+                            if (currentScreen is LoggedInNavTarget.CreateRoom) {
+                                scaleX = 1.5f
+                                scaleY = 1.5f
+                            }
+                        },
+                        onClick = { backStack.push(LoggedInNavTarget.CreateRoom) }
+                    ) {
+                        Icon(imageVector = Icons.Default.AddCircle, contentDescription = "Create")
+                    }
+                }
+            }
+            ) { paddingValues ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

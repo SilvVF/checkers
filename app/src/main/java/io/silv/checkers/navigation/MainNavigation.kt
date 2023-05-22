@@ -3,6 +3,8 @@ package io.silv.checkers.navigation
 import android.os.Parcelable
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.bumble.appyx.core.composable.Children
 import com.bumble.appyx.core.modality.BuildContext
@@ -12,7 +14,9 @@ import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import com.google.android.gms.auth.api.identity.SignInCredential
 import io.silv.checkers.screens.AuthScreen
+import io.silv.checkers.viewmodels.MainActivityViewModel
 import kotlinx.parcelize.Parcelize
+import org.koin.androidx.compose.koinViewModel
 
 sealed class MainNavTarget : Parcelable {
 
@@ -37,8 +41,10 @@ class LoggedOut(buildContext: BuildContext) : Node(buildContext) {
 
 class RootNode(
     buildContext: BuildContext,
+    initialElement: MainNavTarget,
+    private val viewModel: MainActivityViewModel,
     private val backStack: BackStack<MainNavTarget> = BackStack(
-        initialElement = MainNavTarget.Checkers("", null),
+        initialElement = initialElement,
         savedStateMap = buildContext.savedStateMap
     ),
 ): ParentNode<MainNavTarget>(backStack, buildContext) {
@@ -55,6 +61,7 @@ class RootNode(
 
     @Composable
     override fun View(modifier: Modifier) {
+
         Children(
             navModel = backStack,
             transitionHandler = rememberBackstackFader()

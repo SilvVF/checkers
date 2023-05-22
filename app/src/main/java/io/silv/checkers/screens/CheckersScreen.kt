@@ -12,8 +12,8 @@ import io.silv.checkers.Empty
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.ui.CheckerBoard
-import io.silv.checkers.ui.dragdrop.generateInitialBoard
-import io.silv.checkers.validation.validatePlacement
+import io.silv.checkers.usecase.generateInitialBoard
+import io.silv.checkers.usecase.validatePlacement
 
 fun Turn.correctPieceForTurn(piece: Piece): Boolean {
     return when (this) {

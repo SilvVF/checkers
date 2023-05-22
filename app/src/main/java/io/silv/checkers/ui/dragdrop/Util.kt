@@ -19,18 +19,6 @@ fun Cord.spaceBgColor(): Color {
     }
 }
 
-fun generateInitialBoard() = List(8) { i ->
-    val startWithPiece = i.isOdd()
-    val piece = getPiece(i)
-    List(8) { j ->
-        when {
-            startWithPiece && j.isEven() -> piece
-            !startWithPiece && j.isOdd() -> piece
-            else ->  Empty
-        }
-    }
-}
-
 fun getPiece(i: Int): Piece {
     return when (i) {
         in (0..2) -> Red()

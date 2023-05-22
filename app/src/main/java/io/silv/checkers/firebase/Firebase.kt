@@ -8,6 +8,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import io.silv.checkers.Board
 import io.silv.checkers.Room
+import io.silv.checkers.User
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import java.time.LocalDateTime
@@ -17,27 +18,48 @@ object Fb {
 
     const val roomsKey = "rooms"
     const val boardKey = "boards"
+    const val usersKey = "users"
 }
 
-fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String) = callbackFlow {
-    val key = this@createRoomFlow.child(Fb.roomsKey).push().key ?: kotlin.run {
+fun DatabaseReference.createUserFlow(userId: String, roomId: String? = null) = callbackFlow {
+    val db = this@createUserFlow
+    val key = db.child(Fb.usersKey).child(userId)
+    val user = User(
+        id = userId,
+        joinedRoomId = roomId ?: ""
+    )
+    val updates = mapOf("/${Fb.usersKey}/$key" to user.toMap())
+    db.updateChildren(updates)
+        .addOnSuccessListener {
+            trySend(true)
+        }
+        .addOnFailureListener {
+            close(it)
+        }
+    awaitClose()
+}
+
+fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String, time: Int) = callbackFlow {
+    val db = this@createRoomFlow
+    val key = db.child(Fb.roomsKey).push().key ?: kotlin.run {
         close(IllegalStateException("unable to create room"))
         return@callbackFlow
     }
     val room = Room(
         id = key,
         name = name,
-        users = mapOf(userId to color),
-        createdAt = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        usersToColorChoice = mapOf(userId to color),
+        moveTimeSeconds = time ,
+        createdAtEpochSecond = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
     )
     val roomValues = room.toMap()
-    val boardValues = Board(key)
+    val boardValues = Board(key).toMap()
 
     val childUpdates = mapOf(
         "/${Fb.roomsKey}/$key" to roomValues,
         "/${Fb.boardKey}/$key" to boardValues
     )
-    this@createRoomFlow.updateChildren(childUpdates)
+    db.updateChildren(childUpdates)
         .addOnSuccessListener {
             trySend(key)
         }

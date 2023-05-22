@@ -1,4 +1,4 @@
-package io.silv.checkers.validation
+package io.silv.checkers.usecase
 
 import io.silv.checkers.Blue
 import io.silv.checkers.Cord
@@ -128,7 +128,7 @@ fun validateJump(
             }
             is Blue -> {
                 when (direction) {
-                    XYDirection.UpLeft, XYDirection.UpRight  ->  board.getDiagonal(from, direction) is Red
+                    XYDirection.UpLeft, XYDirection.UpRight ->  board.getDiagonal(from, direction) is Red
                     else -> false
                 }
             }
