@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,7 +54,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun CreateRoomScreen(
    viewModel: CreateRoomViewModel = koinViewModel(),
-   paddingValues: PaddingValues,
    showSnackBar: (message: String) -> Unit,
    roomCreated: (roomId: String) -> Unit
 ) {
@@ -86,17 +84,7 @@ fun CreateRoomScreen(
 
    Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier
-         .fillMaxSize()
-         .background(
-            brush = Brush.radialGradient(
-               listOf(
-                  Color(0xff27272a),
-                  Color(0xff18181b),
-               )
-            )
-         )
-         .padding(paddingValues)
+      modifier = Modifier.fillMaxSize()
    ) {
       Spacer(modifier = Modifier.height(22.dp))
       BasicTextField(

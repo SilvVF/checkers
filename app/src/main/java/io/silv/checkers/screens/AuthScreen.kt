@@ -93,7 +93,7 @@ fun AuthScreen(
     nonce: String? = null,
     oAuthClientId: String = clientId,
     paddingValues: PaddingValues,
-    tokenReceived: (token: String, credentials: SignInCredential) -> Unit
+    tokenReceived: (token: String, credential: SignInCredential) -> Unit
 ) {
 
     val ctx = LocalContext.current

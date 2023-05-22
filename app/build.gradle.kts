@@ -1,10 +1,8 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
-
 plugins {
     id ("com.android.application")
     id ("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
     kotlin("plugin.serialization") version "1.8.10"
 }
 
@@ -84,6 +82,7 @@ dependencies {
     implementation(libs.koin.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.navigation)
+    implementation(libs.appyx)
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     // Add the dependency for the Firebase Authentication library

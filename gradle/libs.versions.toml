@@ -8,6 +8,7 @@ firebase="32.0.0"
 lottie = "6.0.0"
 koinVersion="3.4.0"
 koinCompose="3.3.0"
+appyx="1.2.0"
 
 [libraries]
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
@@ -34,6 +35,8 @@ firebase-bom= { module="com.google.firebase:firebase-bom", version.ref="firebase
 firebase-analytics= {module="com.google.firebase:firebase-analytics-ktx"}
 
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref="lottie" }
+
+appyx = { module="com.bumble.appyx:core", version.ref="appyx"}
 
 [plugins]
 

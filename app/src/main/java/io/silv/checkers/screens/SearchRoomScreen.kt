@@ -1,9 +1,7 @@
 package io.silv.checkers.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,7 +52,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SearchRoomScreen(
     viewModel: SearchRoomViewModel = koinViewModel(),
-    paddingValues: PaddingValues,
 ) {
 
     val rooms by viewModel.rooms.collectAsState()
@@ -90,19 +87,7 @@ fun SearchRoomScreen(
        }
     }
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.radialGradient(
-                    listOf(
-                        Color(0xff27272a),
-                        Color(0xff18181b),
-                    )
-                )
-            )
-            .padding(
-                paddingValues
-            )
+        modifier = Modifier.fillMaxSize()
     ) {
         BasicTextField(
             value = query,
