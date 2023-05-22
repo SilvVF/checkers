@@ -1,14 +1,11 @@
 package io.silv.checkers
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,11 +13,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DatabaseReference
 import io.silv.checkers.firebase.roomStateFlow
+import io.silv.checkers.screens.AuthScreen
 import io.silv.checkers.screens.CreateRoomScreen
 import io.silv.checkers.screens.SearchRoomScreen
 import io.silv.checkers.ui.theme.DragDropTestTheme
@@ -89,16 +90,34 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
 
             DragDropTestTheme {
-                Scaffold(Modifier.fillMaxSize()) { paddingValues ->
-                    SearchRoomScreen(paddingValues = paddingValues)
-//                    CreateRoomScreen(
-//                        paddingValues = paddingValues,
-//                        showSnackBar = { reason ->
-//                            Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
-//                        }
-//                    ) { roomId ->
-//                        Toast.makeText(context, roomId,Toast.LENGTH_SHORT).show()
-//                    }
+                Scaffold(
+                    Modifier.fillMaxSize()
+                ) { paddingValues ->
+                    NavHost(
+                        startDestination = "search",
+                        navController = rememberNavController()
+                    ) {
+                        composable("search") {
+                            SearchRoomScreen(paddingValues = paddingValues)
+                        }
+                        composable("create") {
+                            CreateRoomScreen(
+                                paddingValues = paddingValues,
+                                showSnackBar = { reason ->
+                                    Toast.makeText(context, reason, Toast.LENGTH_SHORT).show()
+                                }
+                            ) { roomId ->
+                                Toast.makeText(context, roomId,Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        composable("auth") {
+                            AuthScreen(
+                                paddingValues = paddingValues
+                            ) { token, credentials ->
+
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -54,6 +54,12 @@ data class Board(
     }
 }
 
+data class UiRoom(
+    val id: String,
+    val name: String,
+    val moveTime: String,
+    val dateCreated: String,
+)
 
 typealias DropData = Pair<Cord, Piece>
 

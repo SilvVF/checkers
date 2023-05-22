@@ -6,8 +6,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import io.silv.checkers.MainActivityViewModel
-import io.silv.checkers.screens.CreateRoomViewModel
-import io.silv.checkers.screens.SearchRoomViewModel
+import io.silv.checkers.viewmodels.CreateRoomViewModel
+import io.silv.checkers.viewmodels.SearchRoomViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 
