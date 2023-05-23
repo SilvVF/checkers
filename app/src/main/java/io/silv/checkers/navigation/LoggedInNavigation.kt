@@ -1,10 +1,6 @@
 package io.silv.checkers.navigation
 
 import android.os.Parcelable
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateSizeAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,47 +8,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.flowWithLifecycle
 import com.bumble.appyx.core.composable.Children
-import com.bumble.appyx.core.composable.visibleChildrenAsState
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.active
 import com.bumble.appyx.navmodel.backstack.activeElement
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
-import com.google.android.gms.auth.api.identity.SignInCredential
-import com.google.firebase.auth.FirebaseUser
-import io.silv.checkers.screens.CheckersScreen
 import io.silv.checkers.screens.CreateRoomScreen
 import io.silv.checkers.screens.SearchRoomScreen
+import io.silv.checkers.ui.AnimatedNavIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.parcelize.Parcelize
 
 sealed class LoggedInNavTarget: Parcelable {
@@ -67,16 +48,6 @@ sealed class LoggedInNavTarget: Parcelable {
     data class CheckersGame(val roomId: String?): LoggedInNavTarget()
 }
 
-class CheckersGame(
-    buildContext: BuildContext,
-    val roomId: String?
-): Node(buildContext = buildContext) {
-
-    @Composable
-    override fun View(modifier: Modifier) {
-        CheckersScreen()
-    }
-}
 class CreateRoom(
     buildContext: BuildContext,
 ): Node(buildContext = buildContext) {
@@ -96,11 +67,14 @@ class CreateRoom(
 
 class SearchRooms(
     buildContext: BuildContext,
+    private val connectToRoom: (roomId: String) -> Unit,
 ): Node(buildContext = buildContext) {
 
     @Composable
     override fun View(modifier: Modifier) {
-        SearchRoomScreen()
+        SearchRoomScreen { roomId ->
+            connectToRoom(roomId)
+        }
     }
 }
 
@@ -117,7 +91,11 @@ class Checkers(
         when(navTarget) {
             is LoggedInNavTarget.CheckersGame -> CheckersGame(buildContext, navTarget.roomId)
             LoggedInNavTarget.CreateRoom -> CreateRoom(buildContext)
-            LoggedInNavTarget.SearchRooms -> SearchRooms(buildContext)
+            LoggedInNavTarget.SearchRooms -> SearchRooms(buildContext) { roomId ->
+                backStack.push(
+                    LoggedInNavTarget.CheckersGame(roomId)
+                )
+            }
         }
 
     private val onScreen = flow {
@@ -136,6 +114,9 @@ class Checkers(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
+                if (onScreen is LoggedInNavTarget.CheckersGame) {
+                    return@Scaffold
+                }
                 BottomAppBar(
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -144,57 +125,22 @@ class Checkers(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        IconButton(
-                            onClick = {
+                        AnimatedNavIcon(
+                            icon = Icons.Default.Search,
+                            contentDescription = "Search",
+                            selected = onScreen is LoggedInNavTarget.SearchRooms,
+                            onClick =  {
                                 backStack.push(LoggedInNavTarget.SearchRooms)
                             }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(
-                                    animateDpAsState(
-                                        targetValue = if (onScreen is LoggedInNavTarget.SearchRooms) {
-                                            52.dp
-                                        } else {
-                                            22.dp
-                                        }
-                                    ).value
-                                ),
-                                tint = animateColorAsState(
-                                    targetValue = if (onScreen is LoggedInNavTarget.SearchRooms) {
-                                        Color(0xff64C88D)
-                                    } else {
-                                        Color.DarkGray
-                                    }
-                                ).value,
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
-                            )
-                        }
-                        IconButton(
-                            modifier = Modifier,
-                            onClick = { backStack.push(LoggedInNavTarget.CreateRoom) }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(
-                                    animateDpAsState(
-                                        targetValue = if (onScreen is LoggedInNavTarget.CreateRoom) {
-                                            52.dp
-                                        } else {
-                                            22.dp
-                                        }
-                                    ).value
-                                ),
-                                tint = animateColorAsState(
-                                    targetValue = if (onScreen is LoggedInNavTarget.CreateRoom) {
-                                        Color(0xff64C88D)
-                                    } else {
-                                        Color.DarkGray
-                                    }
-                                ).value,
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Create"
-                            )
-                        }
+                        )
+                        AnimatedNavIcon(
+                            icon = Icons.Default.Add,
+                            contentDescription = "Add",
+                            onClick = {
+                                backStack.push(LoggedInNavTarget.CreateRoom)
+                            },
+                            selected = onScreen == LoggedInNavTarget.CreateRoom,
+                        )
                     }
                 }
             }

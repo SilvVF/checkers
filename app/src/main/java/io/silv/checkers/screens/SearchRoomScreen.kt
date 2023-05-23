@@ -50,6 +50,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SearchRoomScreen(
     viewModel: SearchRoomViewModel = koinViewModel(),
+    connectToRoom: (roomId: String) -> Unit,
 ) {
 
     val rooms by viewModel.rooms.collectAsState()
@@ -140,7 +141,7 @@ fun SearchRoomScreen(
             ) {room ->
                 Card(
                     onClick = {
-
+                        connectToRoom(room.id)
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.9f),

@@ -6,9 +6,15 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
+import io.silv.checkers.Blue
 import io.silv.checkers.Board
+import io.silv.checkers.Cord
+import io.silv.checkers.Empty
+import io.silv.checkers.Red
 import io.silv.checkers.Room
 import io.silv.checkers.User
+import io.silv.checkers.toJsonPiece
+import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import java.time.LocalDateTime
@@ -91,21 +97,96 @@ fun DatabaseReference.roomsFlow() = callbackFlow {
     awaitClose { roomsNode.removeEventListener(roomsListener) }
 }
 
+fun DatabaseReference.boardStateFlow(roomId: String) = callbackFlow {
+    Log.d("FB", "board ID$roomId")
+    val boardListener =  object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            snapshot.getValue<Board>()?.let {
+                Log.d("FB", "boardReceivied$it")
+                trySend(it)
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.w("FB", "loadPost:onCancelled", error.toException())
+            close(error.toException())
+        }
+    }
+    val boardNode = this@boardStateFlow.child(Fb.boardKey).child(roomId)
+    boardNode.addValueEventListener(boardListener)
+    awaitClose { boardNode.removeEventListener(boardListener) }
+}
+
 fun DatabaseReference.roomStateFlow(id: String) = callbackFlow {
     val roomListener = object : ValueEventListener {
 
         override fun onDataChange(dataSnapshot: DataSnapshot) {
            dataSnapshot.getValue<Room>()?.let {
+               Log.d("FB", "room received $it")
                trySend(it)
            }
         }
         override fun onCancelled(databaseError: DatabaseError) {
             // Getting Post failed, log a message
-            Log.w("TAG", "loadPost:onCancelled", databaseError.toException())
+            Log.w("FB", "loadPost:onCancelled", databaseError.toException())
             close(databaseError.toException())
         }
     }
     val roomIdNode = this@roomStateFlow.child(Fb.roomsKey).child(id)
     roomIdNode.addValueEventListener(roomListener)
     awaitClose { roomIdNode.removeEventListener(roomListener) }
+}
+fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callbackFlow {
+    val db = this@updateBoardNoMove
+    val boardNode = db.child(Fb.boardKey).child(roomId)
+    boardNode.updateChildren(
+        board.copy(
+            turn = if (board.turn == 1) 2 else 1,
+        ).toMap()
+    )
+        .addOnSuccessListener {
+            trySend(true)
+        }
+        .addOnFailureListener {
+            trySend(false)
+        }
+    awaitClose()
+}
+
+fun DatabaseReference.updateBoardCallbackFlow(board: Board, from: Cord, to: Cord, roomId: String) = callbackFlow {
+    val db = this@updateBoardCallbackFlow
+    val boardNode = db.child(Fb.boardKey).child(roomId)
+    val (valid, newBoard) = validatePlacement(board.toDomain(), from, to)
+    if (valid) {
+        boardNode.updateChildren(
+            board.copy(
+                turn = if (board.turn == 1) 2 else 1,
+                data = newBoard.map { list -> list.map { it.toJsonPiece() } },
+                roomId = board.roomId,
+                moves = board.moves + listOf(from to to)
+            )
+                .toMap()
+        )
+            .addOnSuccessListener {
+                trySend(true)
+            }
+            .addOnFailureListener {
+                trySend(false)
+            }
+    } else {
+        trySend(false)
+    }
+    awaitClose()
+}
+
+
+
+fun Board.toDomain() = this.data.map {list ->
+    list.map { jsonPiece ->
+        when (jsonPiece.value) {
+            Red().value -> Red(jsonPiece.crowned)
+            Blue().value -> Blue(jsonPiece.crowned)
+            else -> Empty
+        }
+    }
 }

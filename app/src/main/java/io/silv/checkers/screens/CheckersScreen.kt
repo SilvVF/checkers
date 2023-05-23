@@ -2,18 +2,15 @@ package io.silv.checkers.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import io.silv.checkers.Blue
 import io.silv.checkers.Empty
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.ui.CheckerBoard
-import io.silv.checkers.usecase.generateInitialBoard
-import io.silv.checkers.usecase.validatePlacement
+import io.silv.checkers.viewmodels.CheckerUiState
 
 fun Turn.correctPieceForTurn(piece: Piece): Boolean {
     return when (this) {
@@ -28,55 +25,45 @@ enum class Turn {
 
 
 @Composable
-fun CheckersScreen() {
-
-    var board by remember {
-        mutableStateOf(
-            generateInitialBoard()
-        )
-    }
-
-    var turn by rememberSaveable {
-        mutableStateOf(Turn.Red)
-    }
+fun CheckersScreen(
+    state: CheckerUiState.Playing
+) {
+    
 
     BackHandler {
         // stop dragging from closing the app
     }
-
-    CheckerBoard(
-        board = board,
-        turn = turn,
-        onDropAction = { fromCord, toCord, piece ->
-            if (!turn.correctPieceForTurn(piece)) {
-                return@CheckerBoard
-            }
-            val result = validatePlacement(board, fromCord, toCord)
-            if (!result.valid) {
-                return@CheckerBoard
-            }
-            board = List(8) { i ->
-                List(8) { j ->
-                    when (i to j) {
-                        in result.captured -> Empty
-                        fromCord -> Empty
-                        toCord -> when(piece) {
-                            is Red -> {
-                                if (i == board.lastIndex) { Red(true) } else piece
-                            }
-                            is Blue -> {
-                                if (i == 0) { Blue(true) } else piece
-                            }
-                            else -> piece
-                        }
-                        else -> board[i][j]
+    
+    val board by remember(state.board) {
+        derivedStateOf { 
+            state.board.data.map {list ->
+                list.map { jsonPiece -> 
+                    when (jsonPiece.value) {
+                        Red().value -> Red(jsonPiece.crowned)
+                        Blue().value -> Blue(jsonPiece.crowned)
+                        else -> Empty
                     }
                 }
             }
-            turn = when (turn) {
-                Turn.Red -> Turn.Blue
-                Turn.Blue -> Turn.Red
+        }
+    }
+    
+    val turn by remember(state.board) {
+        derivedStateOf { 
+            when(state.board.turn) {
+                Red().value -> Turn.Red
+                else -> Turn.Blue
             }
         }
+    }
+    
+    CheckerBoard(
+        board = board,
+        turn = turn,
+        onDropAction = { fromCord, toCord, piece ->  
+            
+        } 
     )
+    
+
 }

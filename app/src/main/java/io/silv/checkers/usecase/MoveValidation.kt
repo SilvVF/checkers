@@ -105,7 +105,7 @@ fun getXDirection(difX: Int): XDirection {
 
 data class MoveResult(
     val valid: Boolean,
-    val captured: List<Cord>
+    val data: List<List<Piece>>
 )
 
 /**
@@ -151,7 +151,7 @@ fun validateJump(
 
 fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResult {
     val piece = board[from.first][from.second]
-    val bad = MoveResult(valid = false, emptyList())
+    val bad = MoveResult(valid = false, board)
     val difX = from.second - to.second
     val difY = from.first - to.first
 
@@ -186,7 +186,14 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
             }
             distX == 2 && distY == 2 -> {
                 if (validateJump(board, from, piece, xyDirection)) {
-                    MoveResult(true, listOf(cord))
+                    List(board.size) {i ->
+                        List(board[0].size) { j ->
+                            if (i to j == cord) {
+                                Empty
+                            } else board[i][j]
+                        }
+                    }
+                    MoveResult(true, board)
                 } else {
                     bad
                 }
