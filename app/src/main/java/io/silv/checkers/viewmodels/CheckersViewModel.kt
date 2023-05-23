@@ -1,8 +1,10 @@
 package io.silv.checkers.viewmodels
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.errorprone.annotations.Immutable
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import io.silv.checkers.Board
@@ -10,6 +12,7 @@ import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Room
 import io.silv.checkers.firebase.boardStateFlow
+import io.silv.checkers.firebase.deleteRoomCallbackFlow
 import io.silv.checkers.firebase.roomStateFlow
 import io.silv.checkers.firebase.updateBoardCallbackFlow
 import io.silv.checkers.firebase.updateBoardNoMove
@@ -18,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -31,10 +35,8 @@ class CheckersViewModel(
     savedStateHandle: SavedStateHandle,
     private val db: DatabaseReference,
     private val auth: FirebaseAuth,
-    val roomId: String? = savedStateHandle["roomId"],
+    val roomId: String = savedStateHandle["roomId"] ?: "",
 ): ViewModel() {
-
-
 
     private val connectingTime = flow {
         var seconds = 0
@@ -46,16 +48,12 @@ class CheckersViewModel(
     }
         .flowOn(Dispatchers.IO)
 
-
     private val room = flow {
-        roomId?.let {
-            db.roomStateFlow(it).collect { room ->
-                emit(room)
-            }
+        db.roomStateFlow(roomId).collect { room ->
+            emit(room)
         }
     }
         .flowOn(Dispatchers.IO)
-
 
     private val board = flow {
         room.collect {
@@ -65,8 +63,6 @@ class CheckersViewModel(
         }
     }
         .flowOn(Dispatchers.IO)
-
-
 
     private val playerCount = room.map { room ->
         room.usersToColorChoice.size
@@ -104,6 +100,7 @@ class CheckersViewModel(
                             autoMoveJob = CoroutineScope(Dispatchers.IO).launch {
                                 delay(state.room.moveTimeSeconds.toLong())
                                 db.updateBoardNoMove(board, state.room.id)
+                                autoMoveJob = null
                             }
                         }
                     }
@@ -113,6 +110,13 @@ class CheckersViewModel(
         }
     }
 
+    fun deleteRoom(roomId: String) = viewModelScope.launch {
+        db.deleteRoomCallbackFlow(roomId)
+            .catch {
+                it.printStackTrace()
+            }
+            .first()
+    }
 
     fun onDropAction(
         room: Room,
@@ -121,7 +125,8 @@ class CheckersViewModel(
         to: Cord,
         piece: Piece
     ) = viewModelScope.launch {
-        if (room.usersToColorChoice[auth.currentUser?.uid ?: return@launch] == board.turn) {
+        val userTurn = room.usersToColorChoice[auth.currentUser?.uid ?: return@launch] == board.turn
+        if (userTurn) {
             val result = db.updateBoardCallbackFlow(board, from, to, room.id).first()
             if (result) {
                 autoMoveJob?.cancel()
@@ -133,6 +138,8 @@ class CheckersViewModel(
 
 }
 
+@Immutable
+@Stable
 sealed interface CheckerUiState {
     object Connecting: CheckerUiState
     data class Queue(val room: Room): CheckerUiState

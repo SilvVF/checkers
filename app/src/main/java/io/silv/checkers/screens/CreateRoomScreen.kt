@@ -75,9 +75,7 @@ fun CreateRoomScreen(
    }
 
    val sliderPosition by viewModel.sliderPosition.collectAsState()
-   var creatingRoom by remember {
-      mutableStateOf(false)
-   }
+   val creatingRoom by viewModel.creatingRoom.collectAsState()
    var focused by remember {
       mutableStateOf(false)
    }
@@ -167,14 +165,8 @@ fun CreateRoomScreen(
       Button(
          enabled = !creatingRoom && roomName.isNotEmpty(),
          onClick = {
-            if (creatingRoom) { return@Button }
-            creatingRoom = true
             scope.launch {
-               viewModel.createRoom(roomName, color.value)?.let { key ->
-                  roomCreated(key)
-               }
-            }.invokeOnCompletion {
-               creatingRoom = false
+               viewModel.createRoom(roomName, color.value)?.let(roomCreated)
             }
          },
          colors = ButtonDefaults.buttonColors(

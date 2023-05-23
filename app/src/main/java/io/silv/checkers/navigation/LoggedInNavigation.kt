@@ -26,6 +26,7 @@ import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.activeElement
+import com.bumble.appyx.navmodel.backstack.operation.pop
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import io.silv.checkers.screens.CreateRoomScreen
@@ -45,11 +46,12 @@ sealed class LoggedInNavTarget: Parcelable {
     object CreateRoom: LoggedInNavTarget()
 
     @Parcelize
-    data class CheckersGame(val roomId: String?): LoggedInNavTarget()
+    data class CheckersGame(val roomId: String): LoggedInNavTarget()
 }
 
 class CreateRoom(
     buildContext: BuildContext,
+    private val roomCreated: (roomId: String) -> Unit
 ): Node(buildContext = buildContext) {
 
     @Composable
@@ -58,9 +60,7 @@ class CreateRoom(
             showSnackBar = {
 
             },
-            roomCreated = {
-
-            }
+            roomCreated = roomCreated
         )
     }
 }
@@ -89,8 +89,17 @@ class Checkers(
 
     override fun resolve(navTarget: LoggedInNavTarget, buildContext: BuildContext): Node =
         when(navTarget) {
-            is LoggedInNavTarget.CheckersGame -> CheckersGame(buildContext, navTarget.roomId)
-            LoggedInNavTarget.CreateRoom -> CreateRoom(buildContext)
+            is LoggedInNavTarget.CheckersGame -> CheckersGame(buildContext, navTarget.roomId) {
+                backStack.pop()
+                backStack.push(
+                    LoggedInNavTarget.SearchRooms
+                )
+            }
+            LoggedInNavTarget.CreateRoom -> CreateRoom(buildContext) { roomId ->
+                backStack.push(
+                    LoggedInNavTarget.CheckersGame(roomId)
+                )
+            }
             LoggedInNavTarget.SearchRooms -> SearchRooms(buildContext) { roomId ->
                 backStack.push(
                     LoggedInNavTarget.CheckersGame(roomId)

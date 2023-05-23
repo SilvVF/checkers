@@ -74,7 +74,7 @@ fun SearchRoomScreen(
        ) {
            Button(
                onClick = {
-                scope.launch { listState.animateScrollToItem(0,) }
+                 scope.launch { listState.animateScrollToItem(0,) }
                },
                colors = ButtonDefaults.buttonColors(
                    containerColor = Color(0xff64C88D),

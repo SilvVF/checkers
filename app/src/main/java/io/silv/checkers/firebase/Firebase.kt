@@ -45,9 +45,23 @@ fun DatabaseReference.createUserFlow(userId: String, roomId: String? = null) = c
     awaitClose()
 }
 
+fun DatabaseReference.deleteRoomCallbackFlow(roomId: String) = callbackFlow {
+    val db = this@deleteRoomCallbackFlow
+    db.child(Fb.roomsKey).child(roomId).removeValue()
+        .addOnSuccessListener {
+            trySend(true)
+        }
+        .addOnFailureListener {
+            Log.d("ROOM","Unable to delete room $roomId, ${it.localizedMessage}")
+            close(it)
+        }
+    awaitClose()
+}
+
 fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String, time: Int) = callbackFlow {
     val db = this@createRoomFlow
     val key = db.child(Fb.roomsKey).push().key ?: kotlin.run {
+        Log.d("ROOM", "Unable to create room no key")
         close(IllegalStateException("unable to create room"))
         return@callbackFlow
     }
@@ -60,16 +74,20 @@ fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String, t
     )
     val roomValues = room.toMap()
     val boardValues = Board(key).toMap()
+    val userValues = User(userId, key).toMap()
 
     val childUpdates = mapOf(
         "/${Fb.roomsKey}/$key" to roomValues,
-        "/${Fb.boardKey}/$key" to boardValues
+        "/${Fb.boardKey}/$key" to boardValues,
+        "/${Fb.usersKey}/$userId" to userValues
     )
     db.updateChildren(childUpdates)
         .addOnSuccessListener {
+            Log.d("ROOM", "created room")
             trySend(key)
         }
         .addOnFailureListener {
+            Log.d("ROOM", "failed to create room")
             close(it)
         }
     awaitClose()

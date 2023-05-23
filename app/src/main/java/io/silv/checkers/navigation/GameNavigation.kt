@@ -2,6 +2,7 @@ package io.silv.checkers.navigation
 
 import android.os.Parcelable
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -29,7 +30,7 @@ import org.koin.core.parameter.parametersOf
 sealed class GameNavTarget: Parcelable {
 
     @Parcelize
-    data class Connecting(val roomId: String?): GameNavTarget()
+    data class Connecting(val roomId: String): GameNavTarget()
 
     @Parcelize
     data class Queue(val roomId: String, val room: Room): GameNavTarget()
@@ -40,18 +41,21 @@ sealed class GameNavTarget: Parcelable {
 
 class CheckersGame(
     buildContext: BuildContext,
-    private val roomId: String?,
+    private val roomId: String,
     private val backStack: BackStack<GameNavTarget> = BackStack(
         initialElement = GameNavTarget.Connecting(roomId),
         savedStateMap = buildContext.savedStateMap
-    )
+    ),
+    private val navigateBack: () -> Unit,
 ): ParentNode<GameNavTarget>(backStack ,buildContext) {
 
     override fun resolve(navTarget: GameNavTarget, buildContext: BuildContext): Node =
         when(navTarget) {
             is GameNavTarget.Connecting -> Connecting(buildContext, navTarget.roomId)
             is GameNavTarget.Game -> Game(buildContext, navTarget.roomId)
-            is GameNavTarget.Queue -> Queue(buildContext, navTarget.roomId)
+            is GameNavTarget.Queue -> Queue(buildContext, navTarget.roomId) {
+                navigateBack()
+            }
         }
 
     @Composable
@@ -66,13 +70,13 @@ class CheckersGame(
                 is CheckerUiState.Playing -> {
                     Log.d("FB", "called playing joinedRoom")
                     backStack.push(
-                        GameNavTarget.Game(roomId?: "")
+                        GameNavTarget.Game(roomId)
                     )
                 }
                 is CheckerUiState.Queue -> {
                     Log.d("FB", "called playing joinedRoom")
                     backStack.push(
-                        GameNavTarget.Queue(roomId ?: "", state.room)
+                        GameNavTarget.Queue(roomId, state.room)
                     )
                 }
                 else -> Unit
@@ -112,12 +116,19 @@ class Game(
 
 class Queue(
     buildContext: BuildContext,
-    val roomId: String
+    val roomId: String,
+    private val navigateBack: () -> Unit
 ): Node(buildContext) {
 
     @Composable
     override fun View(modifier: Modifier) {
         val viewModel: CheckersViewModel = koinViewModel()
+
+
+        BackHandler {
+            viewModel.deleteRoom(roomId)
+            navigateBack()
+        }
 
         when (val state = viewModel.uiState.collectAsState().value) {
             is CheckerUiState.Queue -> {
@@ -127,7 +138,7 @@ class Queue(
                     contentAlignment = Alignment.Center
                 ) {
                     SelectionContainer() {
-                        Text(text = "connecting ${state.room}")
+                        Text(text = "waiting for opponent ${state.room}")
                     }
                 }
             }
@@ -138,7 +149,7 @@ class Queue(
 
 class Connecting(
     buildContext: BuildContext,
-    val roomId: String?,
+    private val roomId: String,
 ): Node(buildContext) {
 
     @Composable
