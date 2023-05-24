@@ -40,8 +40,6 @@ fun  CheckerBoard(
 ) {
     DraggableContainer(modifier) {
 
-        val dragInfo = LocalDragInfo.current
-
         Column(
             modifier = Modifier.aspectRatio(1f)
         ) {

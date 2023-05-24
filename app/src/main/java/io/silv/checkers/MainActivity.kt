@@ -11,6 +11,7 @@ import com.bumble.appyx.core.integration.NodeHost
 import com.bumble.appyx.core.integrationpoint.NodeComponentActivity
 import io.silv.checkers.navigation.MainNavTarget
 import io.silv.checkers.navigation.RootNode
+import io.silv.checkers.screens.PlayBotScreen
 import io.silv.checkers.ui.theme.DragDropTestTheme
 import io.silv.checkers.viewmodels.MainActivityViewModel
 import kotlinx.coroutines.flow.first
@@ -32,16 +33,20 @@ class MainActivity : NodeComponentActivity() {
             val user = vm.user.collectAsState().value
 
             DragDropTestTheme {
-                NodeHost(integrationPoint = appyxIntegrationPoint) {
-                    RootNode(
-                        initialElement = if (true) {
-                            MainNavTarget.Checkers(user)
-                        } else {
-                            MainNavTarget.LoggedOut
-                        },
-                        buildContext = it,
-                        viewModel = vm
-                    )
+                if (true) {
+                    PlayBotScreen()
+                } else {
+                    NodeHost(integrationPoint = appyxIntegrationPoint) {
+                        RootNode(
+                            initialElement = if (true) {
+                                MainNavTarget.Checkers(user)
+                            } else {
+                                MainNavTarget.LoggedOut
+                            },
+                            buildContext = it,
+                            viewModel = vm
+                        )
+                    }
                 }
             }
         }

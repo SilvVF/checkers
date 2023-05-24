@@ -8,6 +8,7 @@ import com.google.firebase.ktx.Firebase
 import io.silv.checkers.viewmodels.CheckersViewModel
 import io.silv.checkers.viewmodels.CreateRoomViewModel
 import io.silv.checkers.viewmodels.MainActivityViewModel
+import io.silv.checkers.viewmodels.PlayBotViewModel
 import io.silv.checkers.viewmodels.SearchRoomViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
@@ -33,5 +34,7 @@ val appModule = module {
             roomId = parameters.get()
         )
     }
+
+    viewModelOf(::PlayBotViewModel)
 
 }

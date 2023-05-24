@@ -79,6 +79,16 @@ fun List<List<Piece>>.getDiagonal(from: Cord, xyDirection: XYDirection): Piece? 
     }
 }
 
+fun List<List<Piece>>.crownPieces() = this.mapIndexed { i, row ->
+    row.mapIndexed { j , p ->
+        when {
+            (i == 0 && p is Blue) -> Blue(true)
+            (i == this.lastIndex && p is Red) -> Red(true)
+            else -> p
+        }
+    }
+}
+
 fun getYDirection(difY: Int): YDirection {
     return when {
         difY > 0 -> {
@@ -224,7 +234,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
                                 else -> board[i][j]
                             }
                         }
-                    }
+                    }.crownPieces()
                 )
             }
             distX == 2 && distY == 2 -> {
@@ -240,7 +250,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
                                     else -> board[i][j]
                                 }
                             }
-                        }
+                        }.crownPieces()
                     )
                 } else {
                     bad
@@ -253,4 +263,85 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
         }
     }
     return bad
+}
+
+private inline fun <reified T> List<List<Piece>>.anyPiece() =
+    this.any { row ->
+        row.any { it is T}
+    }
+
+
+suspend fun checkForWinner(board: List<List<Piece>>, piece: Piece): Piece? {
+    val blueDirections = listOf(XYDirection.UpLeft, XYDirection.UpRight)
+    val redDirections = listOf(XYDirection.DownLeft ,XYDirection.DownRight)
+    fun blueCords(from: Cord) = blueDirections.mapNotNull {
+        getDiagonalCord(from, it)
+    }
+    fun redCords(from: Cord) = redDirections.mapNotNull {
+        getDiagonalCord(from, it)
+    }
+
+    fun anyJumps(
+        blue: Boolean
+    ): Boolean {
+        val directions = if (blue) blueDirections else redDirections
+        board.forEachIndexed { i, row ->
+            row.forEachIndexed { j, piece ->
+                if (blue && piece !is Blue || !blue && piece !is Red) { return@forEachIndexed }
+                return if (piece.crowned) {
+                    (blueDirections + redDirections)
+                        .any { dir ->
+                            validateJump(board,i to j, board[i][j], dir)
+                        }
+                } else {
+                    directions.any { dir ->
+                        validateJump(board,i to j, board[i][j], dir)
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    fun anyMovesWithin1(
+       blue: Boolean
+    ): Boolean {
+        board.forEachIndexed { i, row ->
+            row.forEachIndexed { j, piece ->
+                if (blue && piece !is Blue || !blue && piece !is Red) { return@forEachIndexed }
+                val cords = if(blue) blueCords(i to j) else redCords(i to j)
+                return if (piece.crowned) {
+                    (blueCords(i to j) + redCords(i to j))
+                        .any { cord ->
+                            validatePlacement(board, i to j, cord).valid
+                        }
+                } else {
+                     cords.any { cord ->
+                        validatePlacement(board, i to j, cord).valid
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    return when(piece) {
+        is Blue -> {
+            when {
+                !board.anyPiece<Blue>() -> Red()
+                !anyMovesWithin1(true) -> Red()
+                !anyJumps(true) -> Red()
+                else -> null
+            }
+        }
+        is Red -> {
+            when {
+                !board.anyPiece<Red>() -> Blue()
+                !anyMovesWithin1(false) -> Blue()
+                !anyJumps(false) -> Blue()
+                else -> null
+            }
+        }
+        else -> null
+    }
 }
