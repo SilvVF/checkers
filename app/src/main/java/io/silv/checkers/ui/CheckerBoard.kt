@@ -33,12 +33,12 @@ import io.silv.checkers.ui.dragdrop.spaceBgColor
 
 
 @Composable
-fun CheckerBoard(
+fun  CheckerBoard(
+    modifier: Modifier = Modifier,
     board: List<List<Piece>>,
-    turn: Turn,
     onDropAction: (fromCord: Cord, toCord: Cord, piece: Piece) -> Unit
 ) {
-    DraggableContainer(Modifier.fillMaxSize()) {
+    DraggableContainer(modifier) {
 
         val dragInfo = LocalDragInfo.current
 
@@ -66,7 +66,6 @@ fun CheckerBoard(
                }
             }
         }
-        Text(text = turn.name, Modifier.align(Alignment.BottomCenter))
     }
 }
 

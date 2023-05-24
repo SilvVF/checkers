@@ -108,6 +108,37 @@ data class MoveResult(
     val data: List<List<Piece>>
 )
 
+fun moreJumpsPossible(board: List<List<Piece>>, end: Cord, piece: Piece): Boolean {
+    val blueDirections = listOf(XYDirection.DownLeft, XYDirection.DownRight)
+    val redDirections = listOf(XYDirection.UpLeft ,XYDirection.UpRight)
+    if (piece.crowned) {
+        for (direction in blueDirections + redDirections) {
+            if (validateJump(board, end, piece, direction)) {
+                return true
+            }
+        }
+    } else {
+        when (piece) {
+            is Red -> {
+                for (direction in redDirections) {
+                    if (validateJump(board, end, piece, direction)) {
+                         return true
+                    }
+                }
+            }
+            is Blue -> {
+                for (direction in blueDirections) {
+                    if (validateJump(board, end, piece, direction)) {
+                         return true
+                    }
+                }
+            }
+            else -> return false
+        }
+    }
+    return false
+}
+
 /**
  * When this function is called To cord is assumed to be 2 spaces away relative to the From Cord
  * and in the direction passed as XYDirection.
@@ -180,20 +211,37 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
 
     // moving diagonal 1 in correct direction and to is empty
     getDiagonalCord(from, xyDirection)?.let { cord ->
+
         return when {
             distX == 1 && distY == 1 -> {
-                MoveResult(true, emptyList())
+                MoveResult(
+                    true,
+                    List(8) {i ->
+                        List(8) { j ->
+                            when(i to j)  {
+                                to -> piece
+                                from -> Empty
+                                else -> board[i][j]
+                            }
+                        }
+                    }
+                )
             }
             distX == 2 && distY == 2 -> {
                 if (validateJump(board, from, piece, xyDirection)) {
-                    List(board.size) {i ->
-                        List(board[0].size) { j ->
-                            if (i to j == cord) {
-                                Empty
-                            } else board[i][j]
+                    MoveResult(
+                        true,
+                        List(8) {i ->
+                            List(8) { j ->
+                                when(i to j)  {
+                                    to -> piece
+                                    from -> Empty
+                                    cord -> Empty
+                                    else -> board[i][j]
+                                }
+                            }
                         }
-                    }
-                    MoveResult(true, board)
+                    )
                 } else {
                     bad
                 }

@@ -9,11 +9,10 @@ import com.google.firebase.database.IgnoreExtraProperties
 import io.silv.checkers.usecase.generateInitialBoard
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.util.UUID
 
 @Parcelize
-@Immutable
-@Stable
 @IgnoreExtraProperties
 data class Room(
     val id: String = UUID.randomUUID().toString(),
@@ -35,7 +34,6 @@ data class Room(
     }
 }
 
-@Immutable
 @Stable
 @IgnoreExtraProperties
 data class User(
@@ -52,14 +50,20 @@ data class User(
     }
 }
 
-@Immutable
-@Stable
+data class Move(
+    val to: List<Int> = emptyList(),
+    val from: List<Int> = emptyList()
+)
+
+
 @IgnoreExtraProperties
 data class Board(
     val roomId: String = "",
     val turn: Int = listOf(1, 2).random(),
-    val data: List<List<JsonPiece>> = generateInitialBoard().map { list -> list.map { it.toJsonPiece() } },
-    val moves: List<Pair<Cord, Cord>> = emptyList()
+    val data: JsonPieceList = JsonPieceList(
+        list = generateInitialBoard().map { list -> list.map { it.toJsonPiece() } }
+    ),
+    val moves: List<Move> = emptyList()
 ) {
 
     @Exclude
@@ -73,8 +77,6 @@ data class Board(
     }
 }
 
-@Immutable
-@Stable
 @Parcelize
 data class UiRoom(
     val id: String,
@@ -87,15 +89,12 @@ typealias DropData = Pair<Cord, Piece>
 
 typealias Cord = Pair<Int, Int>
 
-@Immutable
-@Stable
+
 @Serializable
 data class JsonPieceList(
-    val list: List<List<JsonPiece>>
+    val list: List<List<JsonPiece>> = emptyList()
 )
 
-@Immutable
-@Stable
 @Serializable
 data class JsonPiece(
     val value: Int = 0,
@@ -103,13 +102,12 @@ data class JsonPiece(
 )
 
 fun Piece.toJsonPiece() = when(this) {
-    is Red -> JsonPiece(1, crowned)
-    is Blue -> JsonPiece(2, crowned)
+    is Red -> JsonPiece(1, this.crowned)
+    is Blue -> JsonPiece(2, this.crowned)
     else -> JsonPiece(0, false)
 }
 
-@Immutable
-@Stable
+
 sealed class Piece(
     val value: Int = 0,
     val color: Color = Color.Transparent,
@@ -117,14 +115,9 @@ sealed class Piece(
 )
 
 
-@Immutable
-@Stable
+
 object Empty: Piece(0, Color.Transparent, false)
 
-@Immutable
-@Stable
 data class Red(override val crowned: Boolean = false): Piece(1, Color.Red, crowned)
 
-@Immutable
-@Stable
 data class Blue(override val crowned: Boolean = false): Piece(2, Color.Blue, crowned)

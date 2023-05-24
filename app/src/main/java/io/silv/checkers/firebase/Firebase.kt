@@ -10,13 +10,18 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Board
 import io.silv.checkers.Cord
 import io.silv.checkers.Empty
+import io.silv.checkers.JsonPieceList
+import io.silv.checkers.Move
+import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.Room
 import io.silv.checkers.User
 import io.silv.checkers.toJsonPiece
+import io.silv.checkers.usecase.moreJumpsPossible
 import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.serialization.json.Json
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -160,7 +165,8 @@ fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callback
     boardNode.updateChildren(
         board.copy(
             turn = if (board.turn == 1) 2 else 1,
-        ).toMap()
+        )
+            .toMap()
     )
         .addOnSuccessListener {
             trySend(true)
@@ -171,17 +177,23 @@ fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callback
     awaitClose()
 }
 
-fun DatabaseReference.updateBoardCallbackFlow(board: Board, from: Cord, to: Cord, roomId: String) = callbackFlow {
+fun DatabaseReference.updateBoardCallbackFlow(board: Board,data: List<List<Piece>>, from: Cord, to: Cord, roomId: String, piece: Piece) = callbackFlow {
     val db = this@updateBoardCallbackFlow
     val boardNode = db.child(Fb.boardKey).child(roomId)
-    val (valid, newBoard) = validatePlacement(board.toDomain(), from, to)
+    val (valid, newBoard) = validatePlacement(data, from, to)
     if (valid) {
         boardNode.updateChildren(
             board.copy(
-                turn = if (board.turn == 1) 2 else 1,
-                data = newBoard.map { list -> list.map { it.toJsonPiece() } },
-                roomId = board.roomId,
-                moves = board.moves + listOf(from to to)
+                turn = when {
+                    moreJumpsPossible(newBoard, to, piece) -> board.turn
+                    board.turn == 1 -> 2
+                    else -> 1
+                },
+                data = JsonPieceList(newBoard.map { list -> list.map { it.toJsonPiece() } }),
+                moves = board.moves + Move(
+                    to= listOf(to.first, to.second),
+                    from = listOf(from.first, from.second)
+                )
             )
                 .toMap()
         )
@@ -195,16 +207,4 @@ fun DatabaseReference.updateBoardCallbackFlow(board: Board, from: Cord, to: Cord
         trySend(false)
     }
     awaitClose()
-}
-
-
-
-fun Board.toDomain() = this.data.map {list ->
-    list.map { jsonPiece ->
-        when (jsonPiece.value) {
-            Red().value -> Red(jsonPiece.crowned)
-            Blue().value -> Blue(jsonPiece.crowned)
-            else -> Empty
-        }
-    }
 }
