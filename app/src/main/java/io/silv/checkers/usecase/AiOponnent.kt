@@ -1,5 +1,6 @@
 package io.silv.checkers.usecase
 
+import android.util.Log
 import io.silv.checkers.Blue
 import io.silv.checkers.Cord
 import io.silv.checkers.Empty
@@ -9,10 +10,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import java.util.Stack
 
 
 suspend fun aiMove(board: List<List<Piece>>): Pair<Double, List<List<Piece>>> {
-    return minimax(board, 3, true)
+    return minimax(board, 2, true)
 }
 
 
@@ -48,6 +50,12 @@ suspend fun minimax(
         }
         return value to bestBoard
     }
+}
+
+suspend fun makeRandomMove(board: List<List<Piece>>): List<List<Piece>> {
+    return getAllBoardsDeferred(board, Red()).ifEmpty {
+        listOf(board)
+    }.random()
 }
 
 
@@ -90,15 +98,6 @@ fun simulateMove(from: Cord, toC: Cord, skip: Cord?, board: List<List<Piece>>): 
     }
 }
 
-suspend fun getAllBoards(board: List<List<Piece>>, piece: Piece):  List<List<List<Piece>>> {
-    return getAllPieces(board, piece).flatMap { p ->
-        validMoves(board, p).map { (move, skip) ->
-            val (from, to) = move
-            simulateMove(from, to, skip, board)
-        }
-    }
-}
-
 suspend fun getAllBoardsDeferred(board: List<List<Piece>>, piece: Piece) = withContext(Dispatchers.IO) {
     getAllPieces(board, piece).map { piece ->
         async {
@@ -125,8 +124,12 @@ fun validMoves(board: List<List<Piece>>, piece: Piece): List<Pair<Pair<Cord, Cor
                 if (blue && piece is Blue || !blue && piece is Red) {
                     directions.forEach {
                         if (validateJump(board, i to j, board[i][j], it)) {
-                            val skip = getDiagonalCord(i to j, it)!!
-                            add(i to j to getDiagonalCord(skip, it)!! to skip)
+                            val skip = getDiagonalCord(i to j, it) ?: return@forEach
+                            val piece = board.getDiagonal(skip, it) ?: return@forEach
+                            if(piece !is Empty) { return@forEach }
+                            add(
+                                ((i to j) to getDiagonalCord(skip, it)!!) to skip
+                            )
                         }
                     }
                 }
@@ -143,7 +146,9 @@ fun validMoves(board: List<List<Piece>>, piece: Piece): List<Pair<Pair<Cord, Cor
                     directions.mapNotNull { getDiagonalCord(i to j, it) }.forEach {
                         runCatching {
                             if (validatePlacement(board, i to j, it).valid) {
-                                add((i to j) to it to null)
+                                add(
+                                    ((i to j) to it) to null
+                                )
                             }
                         }
                     }

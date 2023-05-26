@@ -90,9 +90,9 @@ fun rememberAuthScreenState(
 
 @Composable
 fun AuthScreen(
+    modifier: Modifier,
     nonce: String? = null,
     oAuthClientId: String = clientId,
-    paddingValues: PaddingValues,
     tokenReceived: (token: String, credential: SignInCredential) -> Unit
 ) {
 
@@ -127,7 +127,7 @@ fun AuthScreen(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
@@ -136,9 +136,6 @@ fun AuthScreen(
                         Color(0xff18181b),
                     )
                 )
-            )
-            .padding(
-                paddingValues
             ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

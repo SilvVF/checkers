@@ -30,22 +30,6 @@ sealed class MainNavTarget : Parcelable {
     class Checkers(val user: FirebaseUser?) : MainNavTarget()
 }
 
-class LoggedOut(
-    buildContext: BuildContext,
-    private val vm: MainActivityViewModel
-) : Node(buildContext) {
-
-
-
-    @Composable
-    override fun View(modifier: Modifier) {
-        Scaffold { paddingValues ->
-            AuthScreen(paddingValues = paddingValues) { token, _ ->
-                vm.signIn(token)
-            }
-        }
-    }
-}
 
 class RootNode(
     buildContext: BuildContext,
@@ -60,7 +44,7 @@ class RootNode(
     // Here we map BackStack nav targets to the child Nodes
     override fun resolve(navTarget: MainNavTarget, buildContext: BuildContext): Node =
         when (navTarget) {
-            is MainNavTarget.LoggedOut -> LoggedOut(buildContext, viewModel)
+            is MainNavTarget.LoggedOut -> LoggedOut(buildContext)
             is MainNavTarget.Checkers -> Checkers(
                 buildContext
             )

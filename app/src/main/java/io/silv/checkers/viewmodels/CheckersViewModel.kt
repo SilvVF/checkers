@@ -21,7 +21,7 @@ import io.silv.checkers.firebase.updateBoardCallbackFlow
 import io.silv.checkers.firebase.updateBoardNoMove
 import io.silv.checkers.screens.Turn
 import io.silv.checkers.ui.util.EventsViewModel
-import io.silv.checkers.usecase.checkForWinner
+import io.silv.checkers.usecase.checkBoardForWinner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
@@ -75,10 +75,10 @@ class CheckersViewModel(
                     ableToForceOpponentMove.emit(false)
                     seconds = 0
                 }
-                delay(1000)
                 send(BoardTime(seconds, it))
                 seconds += 1
                 prevBoard = it
+                delay(1000)
             }
         }
         awaitClose()
@@ -112,15 +112,18 @@ class CheckersViewModel(
 
     private fun checkForWinner(board: List<List<Piece>>, turn: Turn) =
         viewModelScope.launch {
-            winner.emit(
-                checkForWinner(
-                    board,
-                    when(turn) {
-                        Turn.Blue -> Blue()
-                        Turn.Red -> Red()
+            when(turn) {
+                Turn.Red -> {
+                    if(checkBoardForWinner(board, Blue())) {
+                        winner.emit(Blue())
                     }
-                )
-            )
+                }
+                Turn.Blue -> {
+                    if(checkBoardForWinner(board, Red())) {
+                        winner.emit(Red())
+                    }
+                }
+            }
         }
 
     private fun startAutoMove(uiState: CheckerUiState) = viewModelScope.launch {

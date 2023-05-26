@@ -27,6 +27,7 @@ import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.screens.CheckersScreen
 import io.silv.checkers.ui.ConfirmLeavePopup
+import io.silv.checkers.ui.GameResultPopup
 import io.silv.checkers.viewmodels.CheckersViewModel
 import kotlinx.parcelize.Parcelize
 import org.koin.androidx.compose.koinViewModel
@@ -70,9 +71,10 @@ class CheckersGame(
 
         val state by viewModel.uiState.collectAsState()
 
-        LaunchedEffect(state.winner) {
-            if (state.winner != null) {
-
+        state.winner?.let {
+            GameResultPopup(piece = it, visible = true) {
+                viewModel.deleteRoom(roomId)
+                navigateBack()
             }
         }
 

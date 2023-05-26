@@ -180,12 +180,12 @@ fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callback
 fun DatabaseReference.updateBoardCallbackFlow(board: Board,data: List<List<Piece>>, from: Cord, to: Cord, roomId: String, piece: Piece) = callbackFlow {
     val db = this@updateBoardCallbackFlow
     val boardNode = db.child(Fb.boardKey).child(roomId)
-    val (valid, newBoard) = validatePlacement(data, from, to)
+    val (valid,removed, newBoard) = validatePlacement(data, from, to)
     if (valid) {
         boardNode.updateChildren(
             board.copy(
                 turn = when {
-                    moreJumpsPossible(newBoard, to, piece) -> board.turn
+                    removed != null && moreJumpsPossible(newBoard, to, piece) -> board.turn
                     board.turn == 1 -> 2
                     else -> 1
                 },

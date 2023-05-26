@@ -115,35 +115,18 @@ fun getXDirection(difX: Int): XDirection {
 
 data class MoveResult(
     val valid: Boolean,
+    val removed: Cord?,
     val data: List<List<Piece>>
 )
 
-fun moreJumpsPossible(board: List<List<Piece>>, end: Cord, piece: Piece): Boolean {
-    val blueDirections = listOf(XYDirection.DownLeft, XYDirection.DownRight)
-    val redDirections = listOf(XYDirection.UpLeft ,XYDirection.UpRight)
-    if (piece.crowned) {
-        for (direction in blueDirections + redDirections) {
-            if (validateJump(board, end, piece, direction)) {
+fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord, piece: Piece): Boolean {
+    for (direction in listOf(XYDirection.UpLeft, XYDirection.UpLeft, XYDirection.DownLeft, XYDirection.DownRight)) {
+        val jumpedCord = getDiagonalCord(lastMoveEnd, direction) ?: continue
+        val endOfJumpCord = getDiagonalCord(jumpedCord, direction) ?: continue
+        if (board.getOrNull(endOfJumpCord.first)?.getOrNull(endOfJumpCord.second) is Empty) {
+            if(validateJump(board, lastMoveEnd, piece, direction)) {
                 return true
             }
-        }
-    } else {
-        when (piece) {
-            is Red -> {
-                for (direction in redDirections) {
-                    if (validateJump(board, end, piece, direction)) {
-                         return true
-                    }
-                }
-            }
-            is Blue -> {
-                for (direction in blueDirections) {
-                    if (validateJump(board, end, piece, direction)) {
-                         return true
-                    }
-                }
-            }
-            else -> return false
         }
     }
     return false
@@ -192,7 +175,7 @@ fun validateJump(
 
 fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResult {
     val piece = board[from.first][from.second]
-    val bad = MoveResult(valid = false, board)
+    val bad = MoveResult(valid = false,null,  board)
     val difX = from.second - to.second
     val difY = from.first - to.first
 
@@ -226,6 +209,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
             distX == 1 && distY == 1 -> {
                 MoveResult(
                     true,
+                    removed = null,
                     List(8) {i ->
                         List(8) { j ->
                             when(i to j)  {
@@ -241,6 +225,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
                 if (validateJump(board, from, piece, xyDirection)) {
                     MoveResult(
                         true,
+                        removed = getDiagonalCord(from, xyDirection),
                         List(8) {i ->
                             List(8) { j ->
                                 when(i to j)  {
@@ -265,37 +250,31 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
     return bad
 }
 
-private inline fun <reified T> List<List<Piece>>.anyPiece() =
-    this.any { row ->
-        row.any { it is T}
-    }
 
-
-suspend fun checkForWinner(board: List<List<Piece>>, piece: Piece): Piece? {
+suspend fun checkBoardForWinner(board: List<List<Piece>>, piece: Piece): Boolean {
     val blueDirections = listOf(XYDirection.UpLeft, XYDirection.UpRight)
     val redDirections = listOf(XYDirection.DownLeft ,XYDirection.DownRight)
-    fun blueCords(from: Cord) = blueDirections.mapNotNull {
-        getDiagonalCord(from, it)
-    }
-    fun redCords(from: Cord) = redDirections.mapNotNull {
-        getDiagonalCord(from, it)
-    }
+    val allDirections = blueDirections + redDirections + XYDirection.None
 
-    fun anyJumps(
-        blue: Boolean
-    ): Boolean {
-        val directions = if (blue) blueDirections else redDirections
+    fun checkPlacement(piece: Piece): Boolean {
         board.forEachIndexed { i, row ->
-            row.forEachIndexed { j, piece ->
-                if (blue && piece !is Blue || !blue && piece !is Red) { return@forEachIndexed }
-                return if (piece.crowned) {
-                    (blueDirections + redDirections)
-                        .any { dir ->
-                            validateJump(board,i to j, board[i][j], dir)
+            for ((j, p) in row.withIndex()) {
+                if (p.value != piece.value) {
+                    continue
+                }
+                for (direction in allDirections) {
+                    val d = getDiagonalCord(i to j, direction) ?: continue
+                    if (d.first < board.size && d.second < board[0].size && d.first >=0 && d.second >= 0) {
+                        if(validatePlacement(board, i to j, d).valid) {
+                            return true
                         }
-                } else {
-                    directions.any { dir ->
-                        validateJump(board,i to j, board[i][j], dir)
+                    }
+                    getDiagonalCord(d, direction)?.let {
+                        if (it.first < board.size && it.second < board[0].size && it.first >=0 && it.second >= 0) {
+                            if(validatePlacement(board, i to j, it).valid) {
+                                return true
+                            }
+                        }
                     }
                 }
             }
@@ -303,45 +282,15 @@ suspend fun checkForWinner(board: List<List<Piece>>, piece: Piece): Piece? {
         return false
     }
 
-    fun anyMovesWithin1(
-       blue: Boolean
-    ): Boolean {
-        board.forEachIndexed { i, row ->
-            row.forEachIndexed { j, piece ->
-                if (blue && piece !is Blue || !blue && piece !is Red) { return@forEachIndexed }
-                val cords = if(blue) blueCords(i to j) else redCords(i to j)
-                return if (piece.crowned) {
-                    (blueCords(i to j) + redCords(i to j))
-                        .any { cord ->
-                            validatePlacement(board, i to j, cord).valid
-                        }
-                } else {
-                     cords.any { cord ->
-                        validatePlacement(board, i to j, cord).valid
-                    }
+    fun checkAnyPiece(piece: Piece): Boolean {
+        for (i in board.indices) {
+            for (j in board[0].indices) {
+                if (board[i][j].value == piece.value) {
+                    return true
                 }
             }
         }
         return false
     }
-
-    return when(piece) {
-        is Blue -> {
-            when {
-                !board.anyPiece<Blue>() -> Red()
-                !anyMovesWithin1(true) -> Red()
-                !anyJumps(true) -> Red()
-                else -> null
-            }
-        }
-        is Red -> {
-            when {
-                !board.anyPiece<Red>() -> Blue()
-                !anyMovesWithin1(false) -> Blue()
-                !anyJumps(false) -> Blue()
-                else -> null
-            }
-        }
-        else -> null
-    }
+    return (!checkAnyPiece(piece) || !checkPlacement(piece))
 }
