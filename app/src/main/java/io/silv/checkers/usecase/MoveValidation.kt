@@ -29,7 +29,7 @@ sealed interface XDirection: Direction {
     object None: XDirection
 }
 
-fun getXyDirection(x: XDirection, y: YDirection): XYDirection {
+private fun getXyDirection(x: XDirection, y: YDirection): XYDirection {
     return when (x) {
         XDirection.Left -> {
             when (y) {
@@ -49,16 +49,14 @@ fun getXyDirection(x: XDirection, y: YDirection): XYDirection {
     }
 }
 
-fun getDiagonalCord(from: Cord, xyDirection: XYDirection): Cord? {
-    return runCatching {
-        when (xyDirection) {
-            XYDirection.DownLeft -> from.first + 1 to from.second - 1
-            XYDirection.DownRight -> from.first + 1 to from.second + 1
-            XYDirection.UpLeft -> from.first - 1 to from.second - 1
-            XYDirection.UpRight -> from.first - 1 to from.second + 1
+fun getDiagonalCord(from: Cord, xyDirection: XYDirection, dist: Int = 1): Cord? {
+    return when (xyDirection) {
+            XYDirection.DownLeft -> from.first + dist to from.second - dist
+            XYDirection.DownRight -> from.first + dist to from.second + dist
+            XYDirection.UpLeft -> from.first - dist to from.second - dist
+            XYDirection.UpRight -> from.first - dist to from.second + dist
             XYDirection.None -> null
-        }
-    }.getOrNull()
+    }
 }
 
 fun List<List<Piece>>.getDiagonal(from: Cord, xyDirection: XYDirection): Piece? {
@@ -82,14 +80,14 @@ fun List<List<Piece>>.getDiagonal(from: Cord, xyDirection: XYDirection): Piece? 
 fun List<List<Piece>>.crownPieces() = this.mapIndexed { i, row ->
     row.mapIndexed { j , p ->
         when {
-            (i == 0 && p is Blue) -> Blue(true)
-            (i == this.lastIndex && p is Red) -> Red(true)
+            i == 0 && p is Blue -> Blue(true)
+            i == this.lastIndex && p is Red -> Red(true)
             else -> p
         }
     }
 }
 
-fun getYDirection(difY: Int): YDirection {
+private fun getYDirection(difY: Int): YDirection {
     return when {
         difY > 0 -> {
             YDirection.Up
@@ -101,7 +99,7 @@ fun getYDirection(difY: Int): YDirection {
     }
 }
 
-fun getXDirection(difX: Int): XDirection {
+private fun getXDirection(difX: Int): XDirection {
     return when  {
         difX < 0 -> { // right
             XDirection.Right
@@ -119,14 +117,14 @@ data class MoveResult(
     val data: List<List<Piece>>
 )
 
-fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord, piece: Piece): Boolean {
+fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord): Boolean {
+    val piece = board.getOrNull(lastMoveEnd.first)?.getOrNull(lastMoveEnd.second) ?: return false
     for (direction in listOf(XYDirection.UpLeft, XYDirection.UpRight, XYDirection.DownLeft, XYDirection.DownRight)) {
         val jumpedCord = getDiagonalCord(lastMoveEnd, direction) ?: continue
         val endOfJumpCord = getDiagonalCord(jumpedCord, direction) ?: continue
-        if (board.getOrNull(endOfJumpCord.first)?.getOrNull(endOfJumpCord.second) is Empty) {
-            if(validateJump(board, lastMoveEnd, piece, direction)) {
-                return true
-            }
+        val toSpaceIsEmpty = board.getOrNull(endOfJumpCord.first)?.getOrNull(endOfJumpCord.second) is Empty
+        if (toSpaceIsEmpty && validateJump(board, lastMoveEnd, piece, direction)) {
+            return true
         }
     }
     return false
@@ -136,7 +134,7 @@ fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord, piece: Piece)
  * When this function is called To cord is assumed to be 2 spaces away relative to the From Cord
  * and in the direction passed as XYDirection.
  */
-fun validateJump(
+private fun validateJump(
     board: List<List<Piece>>,
     from: Cord,
     piece: Piece,
@@ -174,8 +172,11 @@ fun validateJump(
 
 
 fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResult {
-    val piece = board[from.first][from.second]
     val bad = MoveResult(valid = false,null,  board)
+    if (to.first > board.lastIndex || to.first < 0 || to.second > board[0].lastIndex || to.second < 0) {
+        return bad
+    }
+    val piece = board[from.first][from.second]
     val difX = from.second - to.second
     val difY = from.first - to.first
 
@@ -203,14 +204,14 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
     }
 
     // moving diagonal 1 in correct direction and to is empty
-    getDiagonalCord(from, xyDirection)?.let { cord ->
+    getDiagonalCord(from, xyDirection).let { cord ->
 
         return when {
             distX == 1 && distY == 1 -> {
                 MoveResult(
-                    true,
+                    valid = true,
                     removed = null,
-                    List(8) {i ->
+                    data = List(8) { i ->
                         List(8) { j ->
                             when(i to j)  {
                                 to -> piece
@@ -224,9 +225,9 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
             distX == 2 && distY == 2 -> {
                 if (validateJump(board, from, piece, xyDirection)) {
                     MoveResult(
-                        true,
+                        valid = true,
                         removed = getDiagonalCord(from, xyDirection),
-                        List(8) {i ->
+                        data = List(8) {i ->
                             List(8) { j ->
                                 when(i to j)  {
                                     to -> piece
@@ -247,50 +248,39 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
             }
         }
     }
-    return bad
 }
 
 
-suspend fun checkBoardForWinner(board: List<List<Piece>>, piece: Piece): Boolean {
+fun checkBoardForWinner(board: List<List<Piece>>, piece: Piece): Boolean {
+
+    val pieceCount = board.sumOf { row -> row.count { p -> p.value == piece.value } }
+
     val blueDirections = listOf(XYDirection.UpLeft, XYDirection.UpRight)
-    val redDirections = listOf(XYDirection.DownLeft ,XYDirection.DownRight)
-    val allDirections = blueDirections + redDirections + XYDirection.None
+    val redDirections = listOf(XYDirection.DownRight ,XYDirection.DownLeft)
+    val nonCrownedDirections = if (Red().value == piece.value) redDirections else blueDirections
+    val directions = blueDirections + redDirections
 
-    fun checkPlacement(piece: Piece): Boolean {
-        board.forEachIndexed { i, row ->
-            for ((j, p) in row.withIndex()) {
-                if (p.value != piece.value) {
-                    continue
-                }
-                for (direction in allDirections) {
-                    val d = getDiagonalCord(i to j, direction) ?: continue
-                    if (d.first < board.size && d.second < board[0].size && d.first >=0 && d.second >= 0) {
-                        if(validatePlacement(board, i to j, d).valid) {
-                            return true
-                        }
-                    }
-                    getDiagonalCord(d, direction)?.let {
-                        if (it.first < board.size && it.second < board[0].size && it.first >=0 && it.second >= 0) {
-                            if(validatePlacement(board, i to j, it).valid) {
-                                return true
-                            }
-                        }
-                    }
-                }
+    val anyValidJumps = buildList {
+        board.forEachPieceIndexed(
+            filterPiece = piece
+        ) { i, j, p ->
+            val from = i to j
+            for (direction in if (p.crowned) directions else nonCrownedDirections) {
+                val jumpCord = getDiagonalCord(from, direction, 2) ?: continue
+                add(validatePlacement(board, from, jumpCord).valid)
             }
         }
-        return false
     }
+        .any { valid -> valid }
 
-    fun checkAnyPiece(piece: Piece): Boolean {
-        for (i in board.indices) {
-            for (j in board[0].indices) {
-                if (board[i][j].value == piece.value) {
-                    return true
-                }
+    val anySingleMoves = buildList {
+        board.forEachPieceIndexed(filterPiece = piece) { i, j, p ->
+            val from = i to j
+            for (direction in if (p.crowned) directions else nonCrownedDirections) {
+                val to = getDiagonalCord(from, direction) ?: continue
+                add(validatePlacement(board, from, to).valid)
             }
         }
-        return false
-    }
-    return (!checkAnyPiece(piece) || !checkPlacement(piece))
+    }.any { valid -> valid  }
+    return (!anySingleMoves && !anyValidJumps) || pieceCount <= 0
 }

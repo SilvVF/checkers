@@ -1,6 +1,7 @@
 package io.silv.checkers.navigation
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,10 +13,13 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.pop
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.firebase.auth.FirebaseUser
+import io.silv.checkers.navigation.logged_in.Checkers
+import io.silv.checkers.navigation.logged_out.LoggedOut
 import io.silv.checkers.screens.AuthScreen
 import io.silv.checkers.viewmodels.MainActivityViewModel
 import kotlinx.parcelize.Parcelize
@@ -34,7 +38,6 @@ sealed class MainNavTarget : Parcelable {
 class RootNode(
     buildContext: BuildContext,
     initialElement: MainNavTarget,
-    private val viewModel: MainActivityViewModel,
     private val backStack: BackStack<MainNavTarget> = BackStack(
         initialElement = initialElement,
         savedStateMap = buildContext.savedStateMap
@@ -44,26 +47,15 @@ class RootNode(
     // Here we map BackStack nav targets to the child Nodes
     override fun resolve(navTarget: MainNavTarget, buildContext: BuildContext): Node =
         when (navTarget) {
-            is MainNavTarget.LoggedOut -> LoggedOut(buildContext)
-            is MainNavTarget.Checkers -> Checkers(
-                buildContext
-            )
+            is MainNavTarget.LoggedOut -> LoggedOut(buildContext) { user ->
+                backStack.push(MainNavTarget.Checkers(user))
+            }
+            is MainNavTarget.Checkers -> Checkers(buildContext)
         }
 
 
     @Composable
     override fun View(modifier: Modifier) {
-
-        val user by viewModel.user.collectAsState()
-
-        LaunchedEffect(user) {
-            user?.let {
-                backStack.push(
-                    MainNavTarget.Checkers(it)
-                )
-            }
-        }
-
         Children(
             navModel = backStack,
             transitionHandler = rememberBackstackFader()

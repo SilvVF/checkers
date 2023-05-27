@@ -1,6 +1,5 @@
-package io.silv.checkers.navigation
+package io.silv.checkers.navigation.logged_in
 
-import android.os.Parcelable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Scaffold
@@ -29,55 +29,15 @@ import com.bumble.appyx.navmodel.backstack.activeElement
 import com.bumble.appyx.navmodel.backstack.operation.pop
 import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
-import io.silv.checkers.screens.CreateRoomScreen
-import io.silv.checkers.screens.SearchRoomScreen
+import io.silv.checkers.navigation.game.CheckersGame
+import io.silv.checkers.navigation.logged_in.nodes.CreateRoom
+import io.silv.checkers.navigation.logged_in.nodes.SearchRooms
+import io.silv.checkers.navigation.logged_out.nodes.PlayBot
 import io.silv.checkers.ui.AnimatedNavIcon
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.parcelize.Parcelize
-
-sealed class LoggedInNavTarget: Parcelable {
-
-    @Parcelize
-    object SearchRooms: LoggedInNavTarget()
-
-    @Parcelize
-    object CreateRoom: LoggedInNavTarget()
-
-    @Parcelize
-    data class CheckersGame(val roomId: String): LoggedInNavTarget()
-}
-
-class CreateRoom(
-    buildContext: BuildContext,
-    private val roomCreated: (roomId: String) -> Unit
-): Node(buildContext = buildContext) {
-
-    @Composable
-    override fun View(modifier: Modifier) {
-        CreateRoomScreen(
-            showSnackBar = {
-
-            },
-            roomCreated = roomCreated
-        )
-    }
-}
-
-class SearchRooms(
-    buildContext: BuildContext,
-    private val connectToRoom: (roomId: String) -> Unit,
-): Node(buildContext = buildContext) {
-
-    @Composable
-    override fun View(modifier: Modifier) {
-        SearchRoomScreen { roomId ->
-            connectToRoom(roomId)
-        }
-    }
-}
-
 
 class Checkers(
     buildContext: BuildContext,
@@ -105,11 +65,12 @@ class Checkers(
                     LoggedInNavTarget.CheckersGame(roomId)
                 )
             }
+            LoggedInNavTarget.PlayBot -> PlayBot(buildContext)
         }
 
     private val onScreen = flow {
         while (true) {
-            kotlinx.coroutines.delay(10)
+            delay(10)
             emit(backStack.activeElement)
         }
     }
@@ -148,30 +109,37 @@ class Checkers(
                             onClick = {
                                 backStack.push(LoggedInNavTarget.CreateRoom)
                             },
-                            selected = onScreen == LoggedInNavTarget.CreateRoom,
+                            selected = onScreen is LoggedInNavTarget.CreateRoom,
                         )
+                        AnimatedNavIcon(
+                            icon = Icons.Default.PlayArrow,
+                            contentDescription = "Play Bot",
+                            selected = onScreen is LoggedInNavTarget.PlayBot
+                        ) {
+                            backStack.push(LoggedInNavTarget.PlayBot)
+                        }
                     }
                 }
             }
-            ) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.radialGradient(
-                                listOf(
-                                    Color(0xff27272a),
-                                    Color(0xff18181b),
-                                )
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.radialGradient(
+                            listOf(
+                                Color(0xff27272a),
+                                Color(0xff18181b),
                             )
                         )
-                        .padding(paddingValues)
-                ) {
-                    Children(
-                        navModel = backStack,
-                        transitionHandler = rememberBackstackFader()
                     )
-                }
+                    .padding(paddingValues)
+            ) {
+                Children(
+                    navModel = backStack,
+                    transitionHandler = rememberBackstackFader()
+                )
             }
+        }
     }
 }

@@ -1,20 +1,16 @@
 package io.silv.checkers.firebase
 
-import android.provider.ContactsContract.RawContacts.Data
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
-import io.silv.checkers.Blue
 import io.silv.checkers.Board
 import io.silv.checkers.Cord
-import io.silv.checkers.Empty
 import io.silv.checkers.JsonPieceList
 import io.silv.checkers.Move
 import io.silv.checkers.Piece
-import io.silv.checkers.Red
 import io.silv.checkers.Room
 import io.silv.checkers.User
 import io.silv.checkers.toJsonPiece
@@ -23,7 +19,6 @@ import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -187,7 +182,7 @@ fun DatabaseReference.updateBoardCallbackFlow(board: Board,data: List<List<Piece
         boardNode.updateChildren(
             board.copy(
                 turn = when {
-                    removed != null && moreJumpsPossible(newBoard, to, piece) -> board.turn
+                    removed != null && moreJumpsPossible(newBoard, to) -> board.turn
                     board.turn == 1 -> 2
                     else -> 1
                 },

@@ -116,8 +116,6 @@ fun AuthScreen(
                 if (tokenId != null) {
                     tokenReceived(tokenId, credentials)
                 }
-            } else {
-
             }
         } catch (e: ApiException) {
             Log.e(TAG, "${e.message}")
@@ -180,9 +178,8 @@ fun AuthScreen(
                 Image(
                     painter = painterResource(id = R.drawable.ic_google_logo),
                     contentDescription = stringResource(id = R.string.google),
-                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = stringResource(id = R.string.google_sign_in),
                     fontWeight = FontWeight.Bold,

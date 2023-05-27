@@ -49,7 +49,6 @@ class MainActivity : NodeComponentActivity() {
                             MainNavTarget.LoggedOut
                         },
                         buildContext = it,
-                        viewModel = vm
                     )
                 }
             }

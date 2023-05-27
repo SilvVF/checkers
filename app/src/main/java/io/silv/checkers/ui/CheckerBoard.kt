@@ -41,7 +41,7 @@ fun  CheckerBoard(
     DraggableContainer(modifier) {
 
         Column(
-            modifier = Modifier.aspectRatio(1f)
+            modifier = Modifier.aspectRatio(1f),
         ) {
            board.forEachIndexed { i, row ->
                Row(

@@ -7,20 +7,16 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
-import io.silv.checkers.screens.Turn
-import io.silv.checkers.usecase.aiMove
+import io.silv.checkers.usecase.AiOpponent
 import io.silv.checkers.usecase.checkBoardForWinner
-import io.silv.checkers.usecase.crownPieces
 import io.silv.checkers.usecase.generateInitialBoard
-import io.silv.checkers.usecase.makeRandomMove
 import io.silv.checkers.usecase.moreJumpsPossible
 import io.silv.checkers.usecase.validatePlacement
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class PlayBotViewModel: ViewModel() {
 
@@ -28,26 +24,20 @@ class PlayBotViewModel: ViewModel() {
     private val _extraJumpsAvailable = MutableStateFlow(false)
     val extraJumpsAvailable = _extraJumpsAvailable.asStateFlow()
     val board = MutableStateFlow(generateInitialBoard())
+    private val aiOpponent = AiOpponent()
 
     init {
         viewModelScope.launch {
-            playerTurn.collect {
-                if (!it) {
-                    var data = withContext(Dispatchers.IO)  {
-                        aiMove(board.value).second
-                    }
-                    if (data == board.value) {
-                        data = makeRandomMove(board.value)
-                    }
-                    board.emit(data.crownPieces())
-                    if (checkBoardForWinner(data, Red())) {
-                        board.emit(generateInitialBoard())
-                        playerTurn.emit(true)
-                    } else {
-                        playerTurn.emit(true)
-                    }
-                } else {
+            playerTurn.collect { isPlayerTurn ->
+                if (isPlayerTurn) {
                     lastMove = null
+                } else {
+                    val boardAfterAiMove = aiOpponent.makeMove(board.value)
+                    board.emit(boardAfterAiMove)
+                    if (checkBoardForWinner(boardAfterAiMove, Red())) {
+                        resetGame()
+                    }
+                    playerTurn.emit(true)
                 }
             }
         }
@@ -62,26 +52,20 @@ class PlayBotViewModel: ViewModel() {
         piece: Piece
     ) = viewModelScope.launch {
         if (!playerTurn.value || piece.value == Red().value || (lastMove != null && from != lastMove)) { return@launch }
-        val (valid,removed, newBoard) = validatePlacement(b, from, to)
+        val (valid, removed, newBoard) = validatePlacement(b, from, to)
         if (valid) {
             lastMove = to
             board.emit(newBoard)
             if (checkBoardForWinner(newBoard, Blue())) {
                 Log.d("CHECK", "TRUE")
-                board.emit(generateInitialBoard())
-                playerTurn.emit(true)
+                resetGame()
             } else {
-                playerTurn.emit(
-                    if (removed != null) {
-                        moreJumpsPossible(newBoard, to, piece).also {
-                            _extraJumpsAvailable.emit(it)
-                        }
-                    } else {
-                        false.also {
-                            _extraJumpsAvailable.emit(false)
-                        }
-                    }
-                )
+               if(removed != null && moreJumpsPossible(newBoard, lastMove ?: (0 to 0))) {
+                   _extraJumpsAvailable.emit(true)
+               } else {
+                   _extraJumpsAvailable.emit(false)
+                   playerTurn.emit(false)
+               }
             }
         }
     }
