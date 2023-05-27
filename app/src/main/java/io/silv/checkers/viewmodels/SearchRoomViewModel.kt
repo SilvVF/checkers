@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import io.silv.checkers.Room
+import io.silv.checkers.UiRoom
 import io.silv.checkers.firebase.deleteRoomCallbackFlow
 import io.silv.checkers.firebase.joinRoom
 import io.silv.checkers.firebase.roomsFlow
+import io.silv.checkers.usecase.ConnectToRoomUseCase
+import io.silv.checkers.usecase.GetJoinableRoomsFlowUseCase
 import io.silv.checkers.usecase.toUiRoom
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +24,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SearchRoomViewModel(
-    private val db: DatabaseReference,
-    auth: FirebaseAuth
+    auth: FirebaseAuth,
+    private val getJoinableRoomsFlowUseCase: GetJoinableRoomsFlowUseCase,
+    private val connectToRoomUseCase: ConnectToRoomUseCase
 ): ViewModel() {
 
     private val userId = auth.currentUser?.uid ?: ""
@@ -31,33 +35,22 @@ class SearchRoomViewModel(
     private val _connecting = MutableStateFlow(false)
     val connecting = _connecting.asStateFlow()
 
-    private val _rooms = MutableStateFlow<List<Room>>(emptyList())
+    private val _rooms = MutableStateFlow<List<UiRoom>>(emptyList())
 
     init {
         viewModelScope.launch {
-            db.roomsFlow().collect { roomList ->
-                _rooms.emit(
-                    roomList.sortedByDescending { room -> room.createdAtEpochSecond }
-                )
+            getJoinableRoomsFlowUseCase().collect { roomList ->
+                _rooms.emit(roomList)
             }
         }
     }
 
     suspend fun connectToRoom(roomId: String): String? {
-        if (connecting.value) { return null }
-        return runCatching {
-            _connecting.emit(true)
-            db.joinRoom(roomId, userId)
-                .catch {
-                    it.printStackTrace()
-                }
-                .first()
-            roomId
-        }
-            .getOrNull()
-            .also {
-                _connecting.emit(false)
+        return connectToRoomUseCase(roomId, userId)
+            .onFailure {
+
             }
+            .getOrNull()
     }
 
     @OptIn(FlowPreview::class)
@@ -66,10 +59,7 @@ class SearchRoomViewModel(
         _rooms
     ) { query, rooms ->
         rooms.filter {
-            it.usersToColorChoice.size <= 1 &&
-                    (it.id.contains(query, true) || it.name.contains(query, true))
-        }.map {
-            it.toUiRoom()
+            (it.id.contains(query, true) || it.name.contains(query, true))
         }
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())

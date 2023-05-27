@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -93,6 +96,7 @@ fun AuthScreen(
     modifier: Modifier,
     nonce: String? = null,
     oAuthClientId: String = clientId,
+    signInAnonymously: () -> Unit,
     tokenReceived: (token: String, credential: SignInCredential) -> Unit
 ) {
 
@@ -144,6 +148,32 @@ fun AuthScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             val shape = RoundedCornerShape(32.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .clip(shape)
+                    .border(1.dp, Color.LightGray, shape)
+                    .clickable {
+                        signInAnonymously()
+                    }
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "anonymous sign in",
+                    tint = Color.LightGray
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Sign in anonymously",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Spacer(modifier = Modifier.height(32.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)

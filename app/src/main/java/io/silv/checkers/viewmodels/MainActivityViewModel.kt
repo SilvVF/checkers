@@ -13,6 +13,7 @@ import io.silv.api.clientId
 import io.silv.checkers.firebase.Fb
 import io.silv.checkers.firebase.createUserFlow
 import io.silv.checkers.firebase.roomStateFlow
+import io.silv.checkers.usecase.DeleteRoomUseCase
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +28,11 @@ class MainActivityViewModel(
     private val auth: FirebaseAuth,
 ): ViewModel() {
 
-    val user = MutableStateFlow<FirebaseUser?>(auth.currentUser)
+    val user = MutableStateFlow(auth.currentUser)
+
+    init {
+        signOut()
+    }
 
     fun signIn(token: String, credential: SignInCredential) = callbackFlow {
         Log.d("SIGN", "called $token")
@@ -35,6 +40,17 @@ class MainActivityViewModel(
         auth.signInWithCredential(firebaseCredential)
             .addOnSuccessListener {
                trySend(it.user)
+            }
+            .addOnFailureListener {
+                close(it)
+            }
+        awaitClose()
+    }
+
+    fun signInAnonymously() = callbackFlow {
+        auth.signInAnonymously()
+            .addOnSuccessListener {
+                trySend(it.user)
             }
             .addOnFailureListener {
                 close(it)

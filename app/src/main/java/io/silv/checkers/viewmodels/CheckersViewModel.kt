@@ -21,6 +21,7 @@ import io.silv.checkers.firebase.updateBoardCallbackFlow
 import io.silv.checkers.firebase.updateBoardNoMove
 import io.silv.checkers.screens.Turn
 import io.silv.checkers.ui.util.EventsViewModel
+import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.checkPieceForLoss
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,6 +44,7 @@ class CheckersViewModel(
     savedStateHandle: SavedStateHandle,
     private val db: DatabaseReference,
     auth: FirebaseAuth,
+    private val deleteRoomUseCase: DeleteRoomUseCase,
     val roomId: String = savedStateHandle["roomId"] ?: "",
 ): EventsViewModel<CheckersEvent>() {
 
@@ -161,11 +163,13 @@ class CheckersViewModel(
     )
 
     fun deleteRoom(roomId: String) = viewModelScope.launch {
-        db.deleteRoomCallbackFlow(roomId)
-            .catch {
-                it.printStackTrace()
+        deleteRoomUseCase(roomId)
+            .onFailure {
+
             }
-            .first()
+            .onSuccess {
+
+            }
     }
 
     fun forceMove() = viewModelScope.launch {

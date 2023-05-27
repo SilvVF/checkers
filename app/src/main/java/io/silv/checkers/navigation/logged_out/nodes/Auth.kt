@@ -25,7 +25,17 @@ class Auth(
         val viewModel: MainActivityViewModel = koinViewModel()
         val scope = rememberCoroutineScope()
 
-        AuthScreen(modifier = modifier) { token, credential ->
+        AuthScreen(
+            modifier = modifier,
+            signInAnonymously =  {
+                scope.launch {
+                    viewModel.signInAnonymously()
+                        .catch { it.printStackTrace() }
+                        .first()
+                        ?.let(onAuthed)
+                }
+            }
+        ) { token, credential ->
             scope.launch {
                 Log.d("AUTHED scope call", "called")
                 viewModel.signIn(token, credential)

@@ -8,6 +8,7 @@ import com.google.firebase.database.DatabaseReference
 import io.silv.checkers.firebase.createRoomFlow
 import io.silv.checkers.usecase.formatTime
 import io.silv.checkers.ui.util.EventsViewModel
+import io.silv.checkers.usecase.CreateRoomUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,10 +20,11 @@ import kotlin.math.roundToInt
 
 class CreateRoomViewModel(
     private val savedStateHandle: SavedStateHandle,
-    private val db: DatabaseReference,
-    private val auth: FirebaseAuth
+    auth: FirebaseAuth,
+    private val createRoomUseCase: CreateRoomUseCase
 ): EventsViewModel<CreateRoomEvent>() {
 
+    private val userId = auth.currentUser?.uid ?: ""
     private val _sliderPosition = MutableStateFlow(30f)
     private val _creatingRoom = MutableStateFlow(false)
     val creatingRoom = _creatingRoom.asStateFlow()
@@ -40,20 +42,20 @@ class CreateRoomViewModel(
     }
 
     suspend fun createRoom(name: String, color: Int): String?  {
-        return runCatching {
-            val userId = auth.currentUser?.uid
-                ?: throw IllegalStateException("current user not signed in")
-            db.createRoomFlow(name, color, "user", sliderPosition.value.roundToInt()).first()
-        }
-            .onSuccess { Log.d("ROOM", it) }
-            .onFailure {
-                it.printStackTrace()
-                Log.d("ROOM", it.localizedMessage ?: "error")
-                eventChannel.send(
-                    CreateRoomEvent.CreateRoomError(it.localizedMessage ?: "Unknown Error")
-                )
-            }
-            .getOrNull()
+       return createRoomUseCase(
+           name = name,
+           color = color,
+           userId = userId,
+           moveTime = sliderPosition.value.roundToInt()
+       )
+           .onFailure {
+               eventChannel.send(
+                   CreateRoomEvent.CreateRoomError(
+                       it.localizedMessage ?: "Unknown Error"
+                   )
+               )
+           }
+           .getOrNull()
     }
 }
 

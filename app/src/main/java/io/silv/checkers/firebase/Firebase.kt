@@ -223,34 +223,31 @@ fun DatabaseReference.getUserCallbackFlow(userId: String) = callbackFlow {
     awaitClose { userNode.removeEventListener(listener) }
 }
 
+fun DatabaseReference.updateUser(user: User) = callbackFlow {
+    val db = this@updateUser
+    db.child(Fb.usersKey)
+        .child(user.id)
+        .updateChildren(user.toMap())
+        .addOnSuccessListener {
+            trySend(user)
+        }
+        .addOnFailureListener {
+            close(it)
+        }
+    awaitClose()
+}
+
 fun DatabaseReference.joinRoom(roomId: String, userId: String) = callbackFlow {
     val db = this@joinRoom
     val roomNode = db.child(Fb.roomsKey).child(roomId)
     val prevRoom = db.roomStateFlow(roomId).first()
     val mutableUserToColorChoice = prevRoom.usersToColorChoice.toMutableMap()
-    val (id, joinedRoom) = db.getUserCallbackFlow(userId).first()
-
-    if (id.isNotEmpty() && joinedRoom.isNotEmpty()) {
-        deleteRoomCallbackFlow(joinedRoom)
-    }
 
     val newRoom = prevRoom.copy(
         usersToColorChoice = mutableUserToColorChoice.apply {
             this[userId] = if (this.values.first() == 1) 2 else 1
         }
     )
-
-    db.child(Fb.usersKey)
-        .child(userId)
-        .updateChildren(
-            User(
-                id = userId,
-                joinedRoomId = roomId
-            ).toMap()
-        )
-        .addOnFailureListener {
-            close(it)
-        }
 
     roomNode.updateChildren(
         newRoom.toMap()
