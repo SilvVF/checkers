@@ -8,11 +8,10 @@ import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.usecase.AiOpponent
-import io.silv.checkers.usecase.checkBoardForWinner
+import io.silv.checkers.usecase.checkPieceForLoss
 import io.silv.checkers.usecase.generateInitialBoard
 import io.silv.checkers.usecase.moreJumpsPossible
 import io.silv.checkers.usecase.validatePlacement
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
@@ -34,7 +33,7 @@ class PlayBotViewModel: ViewModel() {
                 } else {
                     val boardAfterAiMove = aiOpponent.makeMove(board.value)
                     board.emit(boardAfterAiMove)
-                    if (checkBoardForWinner(boardAfterAiMove, Red())) {
+                    if (checkPieceForLoss(boardAfterAiMove, Red())) {
                         resetGame()
                     }
                     playerTurn.emit(true)
@@ -56,7 +55,7 @@ class PlayBotViewModel: ViewModel() {
         if (valid) {
             lastMove = to
             board.emit(newBoard)
-            if (checkBoardForWinner(newBoard, Blue())) {
+            if (checkPieceForLoss(newBoard, Blue())) {
                 Log.d("CHECK", "TRUE")
                 resetGame()
             } else {

@@ -251,7 +251,7 @@ fun validatePlacement(board: List<List<Piece>>, from: Cord, to: Cord): MoveResul
 }
 
 
-fun checkBoardForWinner(board: List<List<Piece>>, piece: Piece): Boolean {
+fun checkPieceForLoss(board: List<List<Piece>>, piece: Piece): Boolean {
 
     val pieceCount = board.sumOf { row -> row.count { p -> p.value == piece.value } }
 

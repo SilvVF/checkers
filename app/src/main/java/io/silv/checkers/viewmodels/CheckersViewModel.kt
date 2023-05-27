@@ -21,7 +21,7 @@ import io.silv.checkers.firebase.updateBoardCallbackFlow
 import io.silv.checkers.firebase.updateBoardNoMove
 import io.silv.checkers.screens.Turn
 import io.silv.checkers.ui.util.EventsViewModel
-import io.silv.checkers.usecase.checkBoardForWinner
+import io.silv.checkers.usecase.checkPieceForLoss
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
@@ -114,12 +114,12 @@ class CheckersViewModel(
         viewModelScope.launch {
             when(turn) {
                 Turn.Red -> {
-                    if(checkBoardForWinner(board, Blue())) {
+                    if(checkPieceForLoss(board, Blue())) {
                         winner.emit(Blue())
                     }
                 }
                 Turn.Blue -> {
-                    if(checkBoardForWinner(board, Red())) {
+                    if(checkPieceForLoss(board, Red())) {
                         winner.emit(Red())
                     }
                 }
