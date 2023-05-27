@@ -7,6 +7,7 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
+import io.silv.checkers.screens.Turn
 import io.silv.checkers.usecase.aiMove
 import io.silv.checkers.usecase.checkBoardForWinner
 import io.silv.checkers.usecase.crownPieces
@@ -16,13 +17,16 @@ import io.silv.checkers.usecase.moreJumpsPossible
 import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PlayBotViewModel: ViewModel() {
 
     private val playerTurn = MutableStateFlow(true)
-
+    private val _extraJumpsAvailable = MutableStateFlow(false)
+    val extraJumpsAvailable = _extraJumpsAvailable.asStateFlow()
     val board = MutableStateFlow(generateInitialBoard())
 
     init {
@@ -69,12 +73,28 @@ class PlayBotViewModel: ViewModel() {
             } else {
                 playerTurn.emit(
                     if (removed != null) {
-                        moreJumpsPossible(newBoard, to, Blue())
+                        moreJumpsPossible(newBoard, to, piece).also {
+                            _extraJumpsAvailable.emit(it)
+                        }
                     } else {
-                        false
+                        false.also {
+                            _extraJumpsAvailable.emit(false)
+                        }
                     }
                 )
             }
         }
+    }
+
+    fun changeTurn() = viewModelScope.launch {
+        playerTurn.getAndUpdate { !it }
+        _extraJumpsAvailable.emit(false)
+    }
+
+    fun resetGame() = viewModelScope.launch {
+        board.emit(generateInitialBoard())
+        lastMove = null
+        playerTurn.emit(true)
+        _extraJumpsAvailable.emit(false)
     }
 }

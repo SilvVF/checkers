@@ -120,7 +120,7 @@ data class MoveResult(
 )
 
 fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord, piece: Piece): Boolean {
-    for (direction in listOf(XYDirection.UpLeft, XYDirection.UpLeft, XYDirection.DownLeft, XYDirection.DownRight)) {
+    for (direction in listOf(XYDirection.UpLeft, XYDirection.UpRight, XYDirection.DownLeft, XYDirection.DownRight)) {
         val jumpedCord = getDiagonalCord(lastMoveEnd, direction) ?: continue
         val endOfJumpCord = getDiagonalCord(jumpedCord, direction) ?: continue
         if (board.getOrNull(endOfJumpCord.first)?.getOrNull(endOfJumpCord.second) is Empty) {

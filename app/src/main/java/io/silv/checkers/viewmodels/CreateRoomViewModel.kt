@@ -41,8 +41,8 @@ class CreateRoomViewModel(
 
     suspend fun createRoom(name: String, color: Int): String?  {
         return runCatching {
-//            val userId = auth.currentUser?.uid TODO()
-//                ?: throw IllegalStateException("current user not signed in")
+            val userId = auth.currentUser?.uid
+                ?: throw IllegalStateException("current user not signed in")
             db.createRoomFlow(name, color, "user", sliderPosition.value.roundToInt()).first()
         }
             .onSuccess { Log.d("ROOM", it) }

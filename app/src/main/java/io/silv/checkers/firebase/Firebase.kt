@@ -1,5 +1,6 @@
 package io.silv.checkers.firebase
 
+import android.provider.ContactsContract.RawContacts.Data
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -21,6 +22,7 @@ import io.silv.checkers.usecase.moreJumpsPossible
 import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -206,5 +208,63 @@ fun DatabaseReference.updateBoardCallbackFlow(board: Board,data: List<List<Piece
     } else {
         trySend(false)
     }
+    awaitClose()
+}
+
+fun DatabaseReference.getUserCallbackFlow(userId: String) = callbackFlow {
+    val db = this@getUserCallbackFlow
+    val userNode = db.child(Fb.usersKey).child(userId)
+    val listener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            snapshot.getValue<User>()?.let {
+                trySend(it)
+            }
+        }
+        override fun onCancelled(error: DatabaseError) {
+            close(error.toException())
+        }
+    }
+    userNode.addListenerForSingleValueEvent(listener)
+    awaitClose { userNode.removeEventListener(listener) }
+}
+
+fun DatabaseReference.joinRoom(roomId: String, userId: String) = callbackFlow {
+    val db = this@joinRoom
+    val roomNode = db.child(Fb.roomsKey).child(roomId)
+    val prevRoom = db.roomStateFlow(roomId).first()
+    val mutableUserToColorChoice = prevRoom.usersToColorChoice.toMutableMap()
+    val (id, joinedRoom) = db.getUserCallbackFlow(userId).first()
+
+    if (id.isNotEmpty() && joinedRoom.isNotEmpty()) {
+        deleteRoomCallbackFlow(joinedRoom)
+    }
+
+    val newRoom = prevRoom.copy(
+        usersToColorChoice = mutableUserToColorChoice.apply {
+            this[userId] = if (this.values.first() == 1) 2 else 1
+        }
+    )
+
+    db.child(Fb.usersKey)
+        .child(userId)
+        .updateChildren(
+            User(
+                id = userId,
+                joinedRoomId = roomId
+            ).toMap()
+        )
+        .addOnFailureListener {
+            close(it)
+        }
+
+    roomNode.updateChildren(
+        newRoom.toMap()
+    )
+        .addOnSuccessListener {
+            trySend(true)
+        }
+        .addOnFailureListener {
+            close(it)
+        }
     awaitClose()
 }

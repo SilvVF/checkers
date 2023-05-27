@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.lifecycle.viewmodel.compose.viewModel
 import io.silv.checkers.R
 import io.silv.checkers.ui.rememberIsImeVisible
 import io.silv.checkers.viewmodels.SearchRoomViewModel
@@ -66,6 +67,7 @@ fun SearchRoomScreen(
     }
     val query by viewModel.query.collectAsState()
     val scope = rememberCoroutineScope()
+    val connecting by viewModel.connecting.collectAsState()
 
     if(jumpToTopVisible) {
        Popup(
@@ -133,7 +135,7 @@ fun SearchRoomScreen(
                 .weight(1f, true),
             state = listState,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             items(
                 items = rooms,
@@ -141,7 +143,13 @@ fun SearchRoomScreen(
             ) {room ->
                 Card(
                     onClick = {
-                        connectToRoom(room.id)
+                        if (!connecting) {
+                            scope.launch {
+                                viewModel.connectToRoom(room.id)?.let {
+                                    connectToRoom(it)
+                                }
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.9f),
