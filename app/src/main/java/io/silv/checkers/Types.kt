@@ -70,9 +70,9 @@ data class Board(
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "roomId" to roomId,
+            "turn" to turn,
             "data" to data,
             "moves" to moves,
-            "turn" to turn
         )
     }
 }
@@ -95,6 +95,15 @@ data class JsonPieceList(
     val list: List<List<JsonPiece>> = emptyList()
 )
 
+fun JsonPieceList.toPieceList() = this.list.map {
+    it.map { piece ->
+        when (piece.value) {
+            Red().value -> Red(piece.crowned)
+            Blue().value -> Blue(piece.crowned)
+            else -> Empty
+        }
+    }
+}
 @Serializable
 data class JsonPiece(
     val value: Int = 0,

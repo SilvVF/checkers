@@ -38,7 +38,7 @@ class MainActivity : NodeComponentActivity() {
             @VisibleForTesting
             val vm: MainActivityViewModel = koinViewModel()
 
-            val user = vm.user.collectAsState().value
+            val user by vm.user.collectAsState()
 
             DragDropTestTheme {
                 NodeHost(integrationPoint = appyxIntegrationPoint) {

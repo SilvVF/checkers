@@ -12,15 +12,22 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ConnectToRoomUseCase(
     private val db: DatabaseReference
 ) {
 
-    private suspend fun deleteRoomIfJoined(roomId: String) =
+    private suspend fun deleteRoomIfJoined(userId: String, roomId: String) =
         CoroutineScope(Dispatchers.IO).launch {
-            if (roomId.isNotEmpty()) {
-                db.deleteRoomCallbackFlow(roomId)
+            val user = db.getUserCallbackFlow(userId)
+                .first()
+            db.updateUser(
+                User(id = userId, joinedRoomId = roomId)
+            )
+                .first()
+            if (user.joinedRoomId.isNotEmpty()) {
+                db.deleteRoomCallbackFlow(user.joinedRoomId)
                     .catch {
                         it.printStackTrace()
                     }
@@ -28,15 +35,14 @@ class ConnectToRoomUseCase(
             }
     }
 
-    suspend operator fun invoke(roomId: String, userId: String): Result<String> {
-        return runCatching {
-            val user = db.getUserCallbackFlow(userId)
-                .first()
-            deleteRoomIfJoined(user.joinedRoomId)
-            db.updateUser(
-                User(id = userId, joinedRoomId = roomId)
-            )
+    suspend operator fun invoke(roomId: String, userId: String): Result<String> = withContext(Dispatchers.IO) {
+        runCatching { deleteRoomIfJoined(userId, roomId) }
+        runCatching {
             db.joinRoom(roomId, userId)
+                .catch {
+                    it.printStackTrace()
+                }
+                .first()
             roomId
         }
     }

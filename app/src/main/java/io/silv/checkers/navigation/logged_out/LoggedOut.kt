@@ -22,6 +22,7 @@ import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.activeElement
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
 import com.google.firebase.auth.FirebaseUser
 import io.silv.checkers.navigation.logged_out.nodes.Auth
 import io.silv.checkers.navigation.logged_out.nodes.PlayBot
@@ -96,7 +97,8 @@ class LoggedOut(
         ) { paddingValues ->
             Children(
                 navModel = backStack,
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues),
+                transitionHandler = rememberBackstackFader()
             )
         }
     }

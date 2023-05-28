@@ -28,9 +28,9 @@ class Game(
 
         CheckersScreen(
             state,
-            forceMove = viewModel::forceMove
-        ) { from: Cord, to: Cord, piece: Piece ->
-            viewModel.onDropAction(state.room, state.rawBoard, state.board, from, to, piece)
+            forceMove =  {}
+        ) { from: Cord, to: Cord, p: Piece ->
+            viewModel.onDropAction(from, to, p)
         }
     }
 }

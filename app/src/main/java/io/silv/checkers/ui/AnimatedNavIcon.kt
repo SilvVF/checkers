@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import io.silv.checkers.ui.theme.PrimaryGreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -57,7 +58,7 @@ fun AnimatedNavIcon(
                 },
             tint = animateColorAsState(
                 targetValue = if (selected) {
-                    Color(0xff64C88D)
+                    PrimaryGreen
                 } else {
                     Color.DarkGray
                 }

@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
@@ -142,6 +143,13 @@ fun AuthScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = "Sign in to play opponents online",
+            modifier = Modifier.fillMaxWidth(0.9f),
+            textAlign = TextAlign.Center,
+            fontSize = 22.sp
+        )
+        Spacer(modifier = Modifier.height(32.dp))
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -231,7 +239,9 @@ fun AuthScreen(
                 visible = inProgress,
                 enter = fadeIn(),
                 exit = fadeOut(),
-                modifier = Modifier.width(150.dp).height(80.dp)
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(80.dp)
             ) {
                 LottieAnimation(
                     composition = composition,

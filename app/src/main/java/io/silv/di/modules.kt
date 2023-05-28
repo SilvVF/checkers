@@ -9,6 +9,7 @@ import io.silv.checkers.usecase.ConnectToRoomUseCase
 import io.silv.checkers.usecase.CreateRoomUseCase
 import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.GetJoinableRoomsFlowUseCase
+import io.silv.checkers.usecase.UpdateBoardUseCase
 import io.silv.checkers.viewmodels.CheckersViewModel
 import io.silv.checkers.viewmodels.CreateRoomViewModel
 import io.silv.checkers.viewmodels.MainActivityViewModel
@@ -33,6 +34,8 @@ val appModule = module {
 
     factoryOf(::CreateRoomUseCase)
 
+    factoryOf(::UpdateBoardUseCase)
+
     viewModelOf(::CreateRoomViewModel)
 
     viewModelOf(::MainActivityViewModel)
@@ -45,6 +48,7 @@ val appModule = module {
             db = get(),
             auth = get(),
             deleteRoomUseCase = get(),
+            updateBoardUseCase = get(),
             roomId = parameters.get()
         )
     }

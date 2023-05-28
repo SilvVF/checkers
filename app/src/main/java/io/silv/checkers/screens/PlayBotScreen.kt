@@ -1,5 +1,6 @@
 package io.silv.checkers.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,6 +34,7 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.ui.CheckerBoard
+import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.PlayBotViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -42,6 +45,10 @@ fun PlayBotScreen(
 ) {
 
     val board by viewModel.board.collectAsState()
+    
+    BackHandler {
+        // stop drag events from closing app
+    }
 
     Column(
         modifier = Modifier
@@ -64,7 +71,7 @@ fun PlayBotScreen(
             Button(
                 onClick = viewModel::changeTurn,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xff64C88D),
+                    containerColor = PrimaryGreen,
                     contentColor = Color.LightGray
                 ),
                 modifier = Modifier
@@ -80,7 +87,7 @@ fun PlayBotScreen(
         Button(
             onClick = viewModel::resetGame,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xff64C88D),
+                containerColor = PrimaryGreen,
                 contentColor = Color.LightGray
             ),
             modifier = Modifier
@@ -92,6 +99,7 @@ fun PlayBotScreen(
                 fontSize = 17.sp
             )
         }
+        Text(text = "Player is Blue", color = Color.Blue, fontSize = 22.sp ,modifier = Modifier.padding(12.dp))
         Row(Modifier.fillMaxHeight(0.3f)) {
             CheckersRemaining(
                 modifier = Modifier
@@ -135,7 +143,7 @@ fun CheckersRemaining(
                 .clip(RoundedCornerShape(12.dp))
                 .border(
                     width = 1.dp,
-                    color = Color(0xff64C88D),
+                    color = PrimaryGreen,
                     shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center

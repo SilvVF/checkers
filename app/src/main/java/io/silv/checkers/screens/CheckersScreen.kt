@@ -40,18 +40,21 @@ import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.ui.CheckerBoard
+import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.CheckerUiState
 
 fun Turn.correctPieceForTurn(piece: Piece): Boolean {
     return when (this) {
         Turn.Blue -> piece is Blue
         Turn.Red -> piece is Red
+        else -> { false }
     }
 }
 
 enum class Turn(val value: Int) {
     Blue(2),
-    Red(1)
+    Red(1),
+    None(0)
 }
 
 
@@ -72,7 +75,6 @@ fun CheckersScreen(
         CheckerBoard(
             modifier = Modifier
                 .fillMaxWidth()
-                .systemBarsPadding()
                 .weight(1f, true),
             board = state.board,
             onDropAction = { fromCord, toCord, piece ->
@@ -81,10 +83,10 @@ fun CheckersScreen(
         )
         if (state.ableToForceOpponentMove) {
             Button(
-                enabled = !state.moveInProgress,
+                enabled = false,
                 onClick = forceMove,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xff64C88D),
+                    containerColor = PrimaryGreen,
                     contentColor = Color.LightGray
                 ),
                 modifier = Modifier
@@ -105,14 +107,16 @@ fun CheckersScreen(
                 .padding(start = 12.dp, end = 12.dp)
                 .fillMaxHeight(0.2f)
         ) {
-            MoveTimer(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .weight(1f)
-                    .fillMaxHeight(),
-                time = state.timeToMove,
-                startTime = state.room.moveTimeSeconds
-            )
+            if (state.turnMe) {
+                MoveTimer(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    time = state.timeToMove,
+                    startTime = state.room.moveTimeSeconds
+                )
+            }
             Column(
                 modifier = Modifier
                     .padding(20.dp)
@@ -129,23 +133,16 @@ fun CheckersScreen(
                         .clip(RoundedCornerShape(12.dp))
                         .border(
                             width = 1.dp,
-                            color = Color(0xff64C88D),
+                            color = PrimaryGreen,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.turn.name,
+                        text = state.turnPiece.toString(),
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
-                        color = remember {
-                            derivedStateOf {
-                                when(state.turn.value) {
-                                    Red().value -> Color.Red
-                                    else -> Color.Blue
-                                }
-                            }.value
-                        }
+                        color = state.turnPiece.color
                     )
                 }
             }
@@ -171,7 +168,7 @@ fun MoveTimer(modifier: Modifier = Modifier, time: Int, startTime: Int) {
                 .clip(RoundedCornerShape(12.dp))
                 .border(
                     width = 1.dp,
-                    color = Color(0xff64C88D),
+                    color = PrimaryGreen,
                     shape = RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center,

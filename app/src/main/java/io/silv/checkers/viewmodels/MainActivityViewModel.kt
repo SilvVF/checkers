@@ -30,10 +30,6 @@ class MainActivityViewModel(
 
     val user = MutableStateFlow(auth.currentUser)
 
-    init {
-        signOut()
-    }
-
     fun signIn(token: String, credential: SignInCredential) = callbackFlow {
         Log.d("SIGN", "called $token")
         val firebaseCredential = GoogleAuthProvider.getCredential(token, clientId)

@@ -48,7 +48,7 @@ class SearchRoomViewModel(
     suspend fun connectToRoom(roomId: String): String? {
         return connectToRoomUseCase(roomId, userId)
             .onFailure {
-
+                it.printStackTrace()
             }
             .getOrNull()
     }

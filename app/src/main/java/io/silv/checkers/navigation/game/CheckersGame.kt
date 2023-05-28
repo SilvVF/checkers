@@ -12,6 +12,7 @@ import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
 import com.bumble.appyx.navmodel.backstack.operation.pop
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.replace
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackSlider
 import io.silv.checkers.navigation.game.nodes.Connecting
 import io.silv.checkers.navigation.game.nodes.Game
@@ -51,18 +52,16 @@ class CheckersGame(
 
         state.winner?.let {
             GameResultPopup(piece = it, visible = true) {
-                viewModel.deleteRoom(roomId)
+               // viewModel.deleteRoom(roomId)
                 navigateBack()
             }
         }
 
         LaunchedEffect(state.room.usersToColorChoice) {
             if (state.room.usersToColorChoice.size >= 2) {
-                backStack.pop()
-                backStack.push(GameNavTarget.Game(roomId))
+                backStack.replace(GameNavTarget.Game(roomId))
             } else {
-                backStack.pop()
-                backStack.push(GameNavTarget.Queue(roomId))
+                backStack.replace(GameNavTarget.Queue(roomId))
             }
         }
 

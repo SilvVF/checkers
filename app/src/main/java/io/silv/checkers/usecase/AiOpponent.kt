@@ -11,7 +11,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 
 
@@ -36,7 +35,6 @@ class AiOpponent {
             result.second.crownPieces()
         }
     }
-
 
     private suspend fun minimax(
         board: List<List<Piece>>,
@@ -88,7 +86,7 @@ class AiOpponent {
         val redKings = board.sumOf {row ->
             row.count { it.crowned && it.value == Red().value }
         }
-        return  blueCount - redCount + (blueKings * 0.5 - redKings * 0.5)
+        return  redCount - blueCount + (redKings * 0.5 - blueKings * 0.5)
     }
 
     private fun getAllPieces(

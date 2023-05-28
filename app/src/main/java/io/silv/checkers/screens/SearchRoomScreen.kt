@@ -42,6 +42,7 @@ import androidx.compose.ui.window.Popup
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.silv.checkers.R
 import io.silv.checkers.ui.rememberIsImeVisible
+import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.SearchRoomViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -79,7 +80,7 @@ fun SearchRoomScreen(
                  scope.launch { listState.animateScrollToItem(0,) }
                },
                colors = ButtonDefaults.buttonColors(
-                   containerColor = Color(0xff64C88D),
+                   containerColor = PrimaryGreen,
                    disabledContainerColor = Color(0xff262626)
                ),
            ) {
@@ -161,7 +162,7 @@ fun SearchRoomScreen(
                         Modifier
                             .fillMaxSize()
                             .padding(12.dp)) {
-                        Text(text = room.name, color = Color(0xff64C88D))
+                        Text(text = room.name, color = PrimaryGreen)
                         Text(text = room.moveTime, color = Color.LightGray)
                         Text(text = room.dateCreated,color = Color.LightGray)
                     }

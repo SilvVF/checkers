@@ -43,6 +43,7 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Piece
 import io.silv.checkers.R
 import io.silv.checkers.Red
+import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.ui.util.collectEvents
 import io.silv.checkers.viewmodels.CreateRoomEvent
 import io.silv.checkers.viewmodels.CreateRoomViewModel
@@ -150,8 +151,8 @@ fun CreateRoomScreen(
             valueRange = 30f..300f,
             onValueChangeFinished = {},
             colors = SliderDefaults.colors(
-               thumbColor = Color(0xff64C88D),
-               activeTrackColor = Color(0xff64C88D)
+               thumbColor = PrimaryGreen,
+               activeTrackColor = PrimaryGreen
             ),
             steps = 60
          )
@@ -170,7 +171,7 @@ fun CreateRoomScreen(
             }
          },
          colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xff64C88D),
+            containerColor = PrimaryGreen,
             contentColor = Color.LightGray
          ),
          modifier = Modifier
@@ -223,7 +224,7 @@ fun ColorSelector(
                   .background(
                      Brush.linearGradient(
                         if (selected) listOf(
-                           Color(0xff64C88D),
+                           PrimaryGreen,
                            Color(0xFF478D64),
                         )
                         else listOf(

@@ -2,6 +2,7 @@ package io.silv.checkers.navigation.game.nodes
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import io.silv.checkers.ui.ConfirmLeavePopup
+import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.CheckersViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -38,7 +40,7 @@ class Queue(
         ConfirmLeavePopup(
             show = leaveConfirmationVisible,
             onConfirm = {
-                viewModel.deleteRoom(roomId)
+                //viewModel.deleteRoom(roomId)
                 navigateBack()
             },
             onDeny = {
@@ -56,7 +58,11 @@ class Queue(
             contentAlignment = Alignment.Center
         ) {
             SelectionContainer {
-                Text(text = "waiting for opponent ${state.room}")
+                Column {
+                    Text(text = "waiting for opponent")
+                    Text(text = state.room.name, color = PrimaryGreen)
+                    Text(text = state.room.id)
+                }
             }
         }
     }

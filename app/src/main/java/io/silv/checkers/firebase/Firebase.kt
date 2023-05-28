@@ -174,35 +174,18 @@ fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callback
     awaitClose()
 }
 
-fun DatabaseReference.updateBoardCallbackFlow(board: Board,data: List<List<Piece>>, from: Cord, to: Cord, roomId: String, piece: Piece) = callbackFlow {
+fun DatabaseReference.updateBoardCallbackFlow(newBoard: Board, roomId: String) = callbackFlow {
     val db = this@updateBoardCallbackFlow
     val boardNode = db.child(Fb.boardKey).child(roomId)
-    val (valid,removed, newBoard) = validatePlacement(data, from, to)
-    if (valid) {
-        boardNode.updateChildren(
-            board.copy(
-                turn = when {
-                    removed != null && moreJumpsPossible(newBoard, to) -> board.turn
-                    board.turn == 1 -> 2
-                    else -> 1
-                },
-                data = JsonPieceList(newBoard.map { list -> list.map { it.toJsonPiece() } }),
-                moves = board.moves + Move(
-                    to= listOf(to.first, to.second),
-                    from = listOf(from.first, from.second)
-                )
-            )
-                .toMap()
-        )
-            .addOnSuccessListener {
-                trySend(true)
-            }
-            .addOnFailureListener {
-                trySend(false)
-            }
-    } else {
-        trySend(false)
-    }
+    boardNode.updateChildren(
+        newBoard.toMap()
+    )
+        .addOnSuccessListener {
+            trySend(true)
+        }
+        .addOnFailureListener {
+            close(it)
+        }
     awaitClose()
 }
 
@@ -242,13 +225,11 @@ fun DatabaseReference.joinRoom(roomId: String, userId: String) = callbackFlow {
     val roomNode = db.child(Fb.roomsKey).child(roomId)
     val prevRoom = db.roomStateFlow(roomId).first()
     val mutableUserToColorChoice = prevRoom.usersToColorChoice.toMutableMap()
-
     val newRoom = prevRoom.copy(
         usersToColorChoice = mutableUserToColorChoice.apply {
             this[userId] = if (this.values.first() == 1) 2 else 1
         }
     )
-
     roomNode.updateChildren(
         newRoom.toMap()
     )

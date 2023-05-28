@@ -118,8 +118,12 @@ data class MoveResult(
 )
 
 fun moreJumpsPossible(board: List<List<Piece>>, lastMoveEnd: Cord): Boolean {
+    val blueDirections = listOf(XYDirection.UpLeft, XYDirection.UpRight)
+    val redDirections = listOf(XYDirection.DownRight ,XYDirection.DownLeft)
+    val nonCrownedDirections = if (Red().value == board[lastMoveEnd.first][lastMoveEnd.second].value) redDirections else blueDirections
+    val directions = blueDirections + redDirections
     val piece = board.getOrNull(lastMoveEnd.first)?.getOrNull(lastMoveEnd.second) ?: return false
-    for (direction in listOf(XYDirection.UpLeft, XYDirection.UpRight, XYDirection.DownLeft, XYDirection.DownRight)) {
+    for (direction in if (piece.crowned) directions else nonCrownedDirections) {
         val jumpedCord = getDiagonalCord(lastMoveEnd, direction) ?: continue
         val endOfJumpCord = getDiagonalCord(jumpedCord, direction) ?: continue
         val toSpaceIsEmpty = board.getOrNull(endOfJumpCord.first)?.getOrNull(endOfJumpCord.second) is Empty
