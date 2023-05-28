@@ -1,6 +1,5 @@
 package io.silv.checkers.viewmodels
 
-import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -15,30 +14,13 @@ import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.Room
 import io.silv.checkers.firebase.boardStateFlow
-import io.silv.checkers.firebase.deleteRoomCallbackFlow
 import io.silv.checkers.firebase.roomStateFlow
-import io.silv.checkers.firebase.updateBoardCallbackFlow
-import io.silv.checkers.firebase.updateBoardNoMove
-import io.silv.checkers.screens.Turn
 import io.silv.checkers.toPieceList
 import io.silv.checkers.ui.util.EventsViewModel
 import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.UpdateBoardUseCase
-import io.silv.checkers.usecase.checkPieceForLoss
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -74,8 +56,11 @@ class CheckersViewModel(
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), CheckerUiState())
 
+    private var moveInProgress: Boolean = false
+
     fun onDropAction(from: Cord, to: Cord, piece: Piece) = viewModelScope.launch {
-        if(uiState.value.turnMe && piece.value == uiState.value.playerPiece.value) {
+        if(uiState.value.turnMe && piece.value == uiState.value.playerPiece.value && !moveInProgress) {
+            moveInProgress = true
             if (afterJumpEnd != null && from != afterJumpEnd) {
                 return@launch
             }
@@ -91,7 +76,7 @@ class CheckersViewModel(
                     afterJumpEnd = if (it.turn == turnBeforeUpdate) { to } else { null }
                 }
         }
-    }
+    }.invokeOnCompletion { moveInProgress = false }
 
 }
 
