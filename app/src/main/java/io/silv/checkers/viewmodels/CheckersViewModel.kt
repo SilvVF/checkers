@@ -1,6 +1,5 @@
 package io.silv.checkers.viewmodels
 
-import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -21,7 +20,7 @@ import io.silv.checkers.ui.util.EventsViewModel
 import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.UpdateBoardNoMoveUseCase
 import io.silv.checkers.usecase.UpdateBoardUseCase
-import kotlinx.coroutines.DisposableHandle
+import io.silv.checkers.usecase.checkPieceForLoss
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
@@ -33,7 +32,7 @@ import kotlinx.coroutines.launch
 
 class CheckersViewModel(
     savedStateHandle: SavedStateHandle,
-    private val db: DatabaseReference,
+    db: DatabaseReference,
     auth: FirebaseAuth,
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val updateBoardUseCase: UpdateBoardUseCase,
@@ -51,7 +50,7 @@ class CheckersViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), Board())
 
 
-    private val secondsOnTurn = channelFlow {
+    private val turnToSecondsOnTurn = channelFlow {
         var turn: Int? = null
         var turnStartTime = System.currentTimeMillis()
         board.collectLatest { board ->
@@ -61,7 +60,6 @@ class CheckersViewModel(
             }
             while (true) {
                 val timeOnTurnSeconds = ((System.currentTimeMillis() - turnStartTime) / 1000).toInt()
-                Log.d("secondsOnTurn", "boardTurn ${board.turn}  turn $turn  timeIn Seconds$timeOnTurnSeconds")
                 send((turn ?: 0) to timeOnTurnSeconds)
                 delay(50)
             }
@@ -72,16 +70,26 @@ class CheckersViewModel(
     val uiState = combine(
         room,
         board,
-        secondsOnTurn
+        turnToSecondsOnTurn
     ) { room, board, (turn, seconds) ->
+        val turnMe = board.turn == room.usersToColorChoice[userId]
+        val timeToMove = room.moveTimeSeconds - seconds
+        val boardData =  board.data.toPieceList()
         CheckerUiState(
             room = room,
-            board = board.data.toPieceList(),
+            board = boardData,
             turnPiece = if(board.turn == 1) Red() else Blue(),
             playerPiece = if(room.usersToColorChoice[userId] == 1) Red() else Blue(),
-            turnMe = board.turn == room.usersToColorChoice[userId],
-            timeToMove = room.moveTimeSeconds - seconds,
-            turnsMatch = turn == board.turn
+            turnMe = turnMe,
+            timeToMove = timeToMove,
+            turnsMatch = turn == board.turn,
+            winner = when {
+                turnMe && timeToMove < -10 -> if(room.usersToColorChoice[userId] == 1) Blue() else Red()
+                timeToMove < -10 -> if(room.usersToColorChoice[userId] == 1) Red() else Blue()
+                checkPieceForLoss(boardData, Red()) -> Blue()
+                checkPieceForLoss(boardData, Blue()) -> Red()
+                else -> null
+            }
         )
     }
         .onEach { state ->
@@ -91,18 +99,17 @@ class CheckersViewModel(
 
     private var moveInProgress: Boolean = false
 
-    private fun startAutoMove(state: CheckerUiState, board: Board, retry: Int = 0): DisposableHandle = viewModelScope.launch {
+    private fun startAutoMove(state: CheckerUiState, board: Board) = viewModelScope.launch {
         if (state.turnMe && !moveInProgress && state.timeToMove == 0 && state.turnsMatch) {
             moveInProgress = true
-            updateBoardNoMoveUseCase(board, state.room.id)
-                .onFailure {
-                    eventChannel.send(
-                        CheckersEvent.MoveFailed(it.localizedMessage ?: "Error")
-                    )
-                    if (retry <= 2) {
-                        startAutoMove(state, board, retry + 1)
+            retry(3) {
+                updateBoardNoMoveUseCase(board, state.room.id)
+                    .onFailure {
+                        eventChannel.send(
+                            CheckersEvent.MoveFailed(it.localizedMessage ?: "Error")
+                        )
                     }
-                }
+            }
         }
     }.invokeOnCompletion { moveInProgress = false }
 
@@ -126,6 +133,22 @@ class CheckersViewModel(
         }
     }.invokeOnCompletion { moveInProgress = false }
 
+    fun deleteBoard() = viewModelScope.launch {
+        retry(3) {
+            deleteRoomUseCase(roomId)
+        }
+    }
+
+}
+
+suspend fun <T> retry(count: Int = 1, action: suspend () -> Result<T>) {
+    var i = 1
+    while (i <= count) {
+        when(action().getOrNull()) {
+            null -> i += 1
+            else -> break
+        }
+    }
 }
 
 sealed interface CheckersEvent {
@@ -142,7 +165,6 @@ data class CheckerUiState(
     val turnMe: Boolean = false,
     val turnPiece: Piece = Empty,
     val timeToMove: Int = 0,
-    val ableToForceOpponentMove: Boolean = false,
     val turnsMatch: Boolean = false,
     val winner: Piece? = null
 )

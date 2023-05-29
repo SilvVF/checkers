@@ -61,7 +61,6 @@ enum class Turn(val value: Int) {
 @Composable
 fun CheckersScreen(
     state: CheckerUiState,
-    forceMove: () -> Unit,
     onDropAction: (from: Cord, to: Cord, piece: Piece) -> Unit
 ) {
 
@@ -81,25 +80,6 @@ fun CheckersScreen(
                 onDropAction(fromCord, toCord, piece)
             }
         )
-        if (state.ableToForceOpponentMove) {
-            Button(
-                enabled = false,
-                onClick = forceMove,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryGreen,
-                    contentColor = Color.LightGray
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .imePadding(),
-            ) {
-                Text(
-                    text = "Don't wait for opponent",
-                    color= Color(0xff18181b),
-                    fontSize = 17.sp
-                )
-            }
-        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
