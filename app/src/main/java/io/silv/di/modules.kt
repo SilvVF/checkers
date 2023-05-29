@@ -9,6 +9,7 @@ import io.silv.checkers.usecase.ConnectToRoomUseCase
 import io.silv.checkers.usecase.CreateRoomUseCase
 import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.GetJoinableRoomsFlowUseCase
+import io.silv.checkers.usecase.UpdateBoardNoMoveUseCase
 import io.silv.checkers.usecase.UpdateBoardUseCase
 import io.silv.checkers.viewmodels.CheckersViewModel
 import io.silv.checkers.viewmodels.CreateRoomViewModel
@@ -27,14 +28,11 @@ val appModule = module {
     single<DatabaseReference> { Firebase.database.reference }
 
     factoryOf(::GetJoinableRoomsFlowUseCase)
-
     factoryOf(::ConnectToRoomUseCase)
-
     factoryOf(::DeleteRoomUseCase)
-
     factoryOf(::CreateRoomUseCase)
-
     factoryOf(::UpdateBoardUseCase)
+    factoryOf(::UpdateBoardNoMoveUseCase)
 
     viewModelOf(::CreateRoomViewModel)
 
@@ -49,6 +47,7 @@ val appModule = module {
             auth = get(),
             deleteRoomUseCase = get(),
             updateBoardUseCase = get(),
+            updateBoardNoMoveUseCase = get(),
             roomId = parameters.get()
         )
     }

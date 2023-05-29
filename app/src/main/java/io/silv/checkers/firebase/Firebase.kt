@@ -7,15 +7,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import io.silv.checkers.Board
-import io.silv.checkers.Cord
-import io.silv.checkers.JsonPieceList
-import io.silv.checkers.Move
-import io.silv.checkers.Piece
 import io.silv.checkers.Room
 import io.silv.checkers.User
-import io.silv.checkers.toJsonPiece
-import io.silv.checkers.usecase.moreJumpsPossible
-import io.silv.checkers.usecase.validatePlacement
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
@@ -155,23 +148,6 @@ fun DatabaseReference.roomStateFlow(id: String) = callbackFlow {
     val roomIdNode = this@roomStateFlow.child(Fb.roomsKey).child(id)
     roomIdNode.addValueEventListener(roomListener)
     awaitClose { roomIdNode.removeEventListener(roomListener) }
-}
-fun DatabaseReference.updateBoardNoMove(board: Board, roomId: String) = callbackFlow {
-    val db = this@updateBoardNoMove
-    val boardNode = db.child(Fb.boardKey).child(roomId)
-    boardNode.updateChildren(
-        board.copy(
-            turn = if (board.turn == 1) 2 else 1,
-        )
-            .toMap()
-    )
-        .addOnSuccessListener {
-            trySend(true)
-        }
-        .addOnFailureListener {
-            trySend(false)
-        }
-    awaitClose()
 }
 
 fun DatabaseReference.updateBoardCallbackFlow(newBoard: Board, roomId: String) = callbackFlow {
