@@ -14,17 +14,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,23 +34,11 @@ import io.silv.checkers.Blue
 import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
+import io.silv.checkers.getString
 import io.silv.checkers.ui.CheckerBoard
 import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.CheckerUiState
 
-fun Turn.correctPieceForTurn(piece: Piece): Boolean {
-    return when (this) {
-        Turn.Blue -> piece is Blue
-        Turn.Red -> piece is Red
-        else -> { false }
-    }
-}
-
-enum class Turn(val value: Int) {
-    Blue(2),
-    Red(1),
-    None(0)
-}
 
 
 @Composable
@@ -63,10 +46,10 @@ fun CheckersScreen(
     state: CheckerUiState,
     onDropAction: (from: Cord, to: Cord, piece: Piece) -> Unit
 ) {
-
     BackHandler {
         // stop dragging from closing the app
     }
+
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -80,32 +63,43 @@ fun CheckersScreen(
                 onDropAction(fromCord, toCord, piece)
             }
         )
+        Text(
+            text = buildAnnotatedString {
+                val piece = state.playerPiece.getString()
+                val text = "Your pieces are "
+                append("$text$piece")
+                addStyle(start = 0, end = text.length, style = SpanStyle(color= Color.LightGray))
+                addStyle(start = text.length, end = text.length + piece.length, style = SpanStyle(color=state.playerPiece.color))
+            },
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier
-                .padding(start = 12.dp, end = 12.dp)
-                .fillMaxHeight(0.2f)
+                .fillMaxWidth()
+                .weight(0.4f)
         ) {
             if (state.turnMe) {
                 MoveTimer(
                     modifier = Modifier
-                        .padding(20.dp)
                         .weight(1f)
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
+                        .padding(20.dp),
                     time = state.timeToMove,
                     startTime = state.room.moveTimeSeconds
                 )
             }
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
                     .weight(1f)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Current Turn")
+                Text(text = "Current Turn", color = Color.LightGray, fontSize = 18.sp)
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -119,7 +113,7 @@ fun CheckersScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.turnPiece.toString(),
+                        text = state.turnPiece.getString(),
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = state.turnPiece.color
@@ -127,9 +121,32 @@ fun CheckersScreen(
                 }
             }
         }
+        CheckersRemaining(modifier = Modifier
+            .fillMaxWidth()
+            .weight(0.4f), board = state.board)
     }
-    
+}
 
+@Composable
+fun CheckersRemaining(modifier: Modifier, board: List<List<Piece>>) {
+    Row(modifier = modifier) {
+        CheckersRemaining(
+            modifier = Modifier
+                .padding(20.dp)
+                .weight(1f),
+            board = board,
+            text = "Blue Checkers",
+            piece = Blue()
+        )
+        CheckersRemaining(
+            modifier = Modifier
+                .padding(20.dp)
+                .weight(1f),
+            board = board,
+            text = "Red Checkers",
+            piece = Red()
+        )
+    }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -140,7 +157,7 @@ fun MoveTimer(modifier: Modifier = Modifier, time: Int, startTime: Int) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Time to move")
+        Text(text = "Time to move", color = Color.LightGray, fontSize = 18.sp)
         AnimatedContent(
             modifier = Modifier
                 .weight(1f)

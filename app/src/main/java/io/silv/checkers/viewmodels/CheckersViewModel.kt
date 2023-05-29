@@ -102,7 +102,7 @@ class CheckersViewModel(
     private fun startAutoMove(state: CheckerUiState, board: Board) = viewModelScope.launch {
         if (state.turnMe && !moveInProgress && state.timeToMove == 0 && state.turnsMatch) {
             moveInProgress = true
-            retry(3) {
+            retryOnFailure(3) {
                 updateBoardNoMoveUseCase(board, state.room.id)
                     .onFailure {
                         eventChannel.send(
@@ -133,15 +133,15 @@ class CheckersViewModel(
         }
     }.invokeOnCompletion { moveInProgress = false }
 
-    fun deleteBoard() = viewModelScope.launch {
-        retry(3) {
+    fun deleteRoom() = viewModelScope.launch {
+        retryOnFailure(3) {
             deleteRoomUseCase(roomId)
         }
     }
 
 }
 
-suspend fun <T> retry(count: Int = 1, action: suspend () -> Result<T>) {
+suspend fun <T> retryOnFailure(count: Int = 1, action: suspend () -> Result<T>) {
     var i = 1
     while (i <= count) {
         when(action().getOrNull()) {

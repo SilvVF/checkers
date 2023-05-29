@@ -1,7 +1,6 @@
 package io.silv.checkers
 
 import android.os.Parcelable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import com.google.firebase.database.Exclude
@@ -9,7 +8,6 @@ import com.google.firebase.database.IgnoreExtraProperties
 import io.silv.checkers.usecase.generateInitialBoard
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.util.UUID
 
 @Parcelize
@@ -54,6 +52,12 @@ data class Move(
     val to: List<Int> = emptyList(),
     val from: List<Int> = emptyList()
 )
+
+enum class Turn(val value: Int) {
+    Blue(2),
+    Red(1),
+    None(0)
+}
 
 
 @IgnoreExtraProperties
@@ -123,7 +127,13 @@ sealed class Piece(
     open val crowned: Boolean = false,
 )
 
-
+fun Piece.getString(): String {
+    return when(this) {
+        is Red -> "Red"
+        is Blue -> "Blue"
+        else -> "Empty"
+    }
+}
 
 object Empty: Piece(0, Color.Transparent, false)
 

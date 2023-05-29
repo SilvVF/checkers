@@ -10,8 +10,6 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.pop
-import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.replace
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackSlider
 import io.silv.checkers.navigation.game.nodes.Connecting
@@ -52,7 +50,7 @@ class CheckersGame(
 
         state.winner?.let {
             GameResultPopup(piece = it, visible = true) {
-               // viewModel.deleteRoom(roomId)
+                viewModel.deleteRoom()
                 navigateBack()
             }
         }

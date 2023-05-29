@@ -1,23 +1,24 @@
 package io.silv.checkers.ui
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,16 +27,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
-import io.silv.checkers.Blue
 import io.silv.checkers.Piece
-import io.silv.checkers.Red
-import kotlin.random.Random
+import io.silv.checkers.getString
+import io.silv.checkers.ui.theme.PrimaryGreen
 
 @Composable
 fun GameResultPopup(
@@ -45,17 +48,16 @@ fun GameResultPopup(
 ) {
     if (!visible) { return }
 
-    val pieceText by remember {
-        derivedStateOf {
-            when(piece) {
-                is Red -> {
-                    "Winner is red"
-                }
-                is Blue -> {
-                    "Winner is blue"
-                }
-                else -> ""
-            }
+    val pieceText = remember {
+        buildAnnotatedString {
+            val text = "The winner of the game is "
+            val pieceText = piece.getString()
+            append(text + pieceText)
+            addStyle(
+                start = text.length,
+                end = text.length + pieceText.length,
+                style = SpanStyle(color = piece.color)
+            )
         }
     }
 
@@ -65,12 +67,22 @@ fun GameResultPopup(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .fillMaxHeight(0.45f)
+                .padding(32.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.DarkGray)
+                .background(Color(0xff27272a)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text(text = pieceText)
-            Button(onClick = { onDismiss() }) {
+            Text(text = pieceText, color = Color.LightGray, fontWeight = FontWeight.SemiBold, fontSize = 40.sp, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(30.dp))
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryGreen
+                ),
+                onClick = { onDismiss() }
+            ) {
                 Text(text = "go back to search")
             }
         }

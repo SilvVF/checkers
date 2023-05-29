@@ -1,29 +1,20 @@
 package io.silv.checkers.navigation
 
 import android.os.Parcelable
-import android.util.Log
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.bumble.appyx.core.composable.Children
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.node.ParentNode
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.pop
 import com.bumble.appyx.navmodel.backstack.operation.push
+import com.bumble.appyx.navmodel.backstack.operation.replace
 import com.bumble.appyx.navmodel.backstack.transitionhandler.rememberBackstackFader
-import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.firebase.auth.FirebaseUser
-import io.silv.checkers.navigation.logged_in.Checkers
+import io.silv.checkers.navigation.logged_in.LoggedIn
 import io.silv.checkers.navigation.logged_out.LoggedOut
-import io.silv.checkers.screens.AuthScreen
-import io.silv.checkers.viewmodels.MainActivityViewModel
 import kotlinx.parcelize.Parcelize
-import org.koin.androidx.compose.koinViewModel
 
 sealed class MainNavTarget : Parcelable {
 
@@ -31,7 +22,7 @@ sealed class MainNavTarget : Parcelable {
     object LoggedOut : MainNavTarget()
 
     @Parcelize
-    class Checkers(val user: FirebaseUser?) : MainNavTarget()
+    class LoggedIn(val user: FirebaseUser) : MainNavTarget()
 }
 
 
@@ -42,20 +33,25 @@ class RootNode(
         initialElement = initialElement,
         savedStateMap = buildContext.savedStateMap
     ),
+    private val logOut: () -> Unit
 ): ParentNode<MainNavTarget>(backStack, buildContext) {
 
     // Here we map BackStack nav targets to the child Nodes
     override fun resolve(navTarget: MainNavTarget, buildContext: BuildContext): Node =
         when (navTarget) {
             is MainNavTarget.LoggedOut -> LoggedOut(buildContext) { user ->
-                backStack.push(MainNavTarget.Checkers(user))
+                backStack.push(MainNavTarget.LoggedIn(user))
             }
-            is MainNavTarget.Checkers -> Checkers(buildContext)
+            is MainNavTarget.LoggedIn -> LoggedIn(buildContext) {
+                logOut()
+                backStack.replace(MainNavTarget.LoggedOut)
+            }
         }
 
 
     @Composable
     override fun View(modifier: Modifier) {
+
         Children(
             navModel = backStack,
             transitionHandler = rememberBackstackFader()

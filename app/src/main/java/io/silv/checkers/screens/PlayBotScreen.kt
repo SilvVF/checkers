@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import io.silv.checkers.Blue
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
+import io.silv.checkers.getString
 import io.silv.checkers.ui.CheckerBoard
 import io.silv.checkers.ui.theme.PrimaryGreen
 import io.silv.checkers.viewmodels.PlayBotViewModel
@@ -65,6 +68,7 @@ fun PlayBotScreen(
                 viewModel.onDropAction(board, from, to, piece)
             }
         )
+        Spacer(modifier = Modifier.height(32.dp))
         AnimatedVisibility(
             visible = viewModel.extraJumpsAvailable.collectAsState().value
         ) {
@@ -99,15 +103,27 @@ fun PlayBotScreen(
                 fontSize = 17.sp
             )
         }
-        Text(text = "Player is Blue", color = Color.Blue, fontSize = 22.sp ,modifier = Modifier.padding(12.dp))
-        Row(Modifier.fillMaxHeight(0.3f)) {
+        val pieceText = remember {
+            buildAnnotatedString {
+                val text = "your color is  "
+                val pieceText = "Blue"
+                append(text + pieceText)
+                addStyle(
+                    start = text.length,
+                    end = text.length + pieceText.length,
+                    style = SpanStyle(color = Blue().color)
+                )
+            }
+        }
+        Text(text = pieceText, color = Color.LightGray, fontSize = 22.sp ,modifier = Modifier.padding(12.dp))
+        Row {
             CheckersRemaining(
                 modifier = Modifier
                     .padding(20.dp)
                     .weight(1f)
                     .fillMaxHeight(),
                 board = board,
-                text = "Blue Checkers Remaining",
+                text = "Blue Checkers",
                 piece = Blue()
             )
             CheckersRemaining(
@@ -116,7 +132,7 @@ fun PlayBotScreen(
                     .weight(1f)
                     .fillMaxHeight(),
                 board = board,
-                text = "Red Checkers Remaining",
+                text = "Red Checkers",
                 piece = Red()
             )
         }
@@ -135,7 +151,7 @@ fun CheckersRemaining(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = text, textAlign = TextAlign.Center)
+        Text(text = text, textAlign = TextAlign.Center, color = Color.LightGray,fontSize = 18.sp)
         Box(
             modifier = Modifier
                 .weight(1f)

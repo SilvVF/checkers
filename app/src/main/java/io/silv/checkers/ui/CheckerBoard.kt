@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,9 +23,7 @@ import io.silv.checkers.Cord
 import io.silv.checkers.DropData
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
-import io.silv.checkers.screens.Turn
 import io.silv.checkers.ui.dragdrop.DragTarget
-import io.silv.checkers.ui.dragdrop.DraggableContainer
 import io.silv.checkers.ui.dragdrop.DropTarget
 import io.silv.checkers.ui.dragdrop.LocalDragInfo
 import io.silv.checkers.ui.dragdrop.spaceBgColor
@@ -38,8 +35,6 @@ fun  CheckerBoard(
     board: List<List<Piece>>,
     onDropAction: (fromCord: Cord, toCord: Cord, piece: Piece) -> Unit
 ) {
-    DraggableContainer(modifier) {
-
         Column(
             modifier = Modifier.aspectRatio(1f),
         ) {
@@ -63,7 +58,6 @@ fun  CheckerBoard(
                    }
                }
             }
-        }
     }
 }
 
