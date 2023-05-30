@@ -18,7 +18,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +31,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,81 +53,24 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.android.gms.common.api.ApiException
-import io.silv.api.clientId
+import com.google.android.gms.common.api.CommonStatusCodes
+import io.silv.api.webclientId
 import io.silv.checkers.R
 
 
 const val TAG = "OneTap"
 
-class AuthScreenState(activity: Activity) {
-
-    val oneTapClient = Identity.getSignInClient(activity)
-
-    val signInRequest = BeginSignInRequest.builder()
-            .setPasswordRequestOptions(
-                BeginSignInRequest.PasswordRequestOptions.builder()
-                    .setSupported(true)
-                    .build()
-            )
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setFilterByAuthorizedAccounts(false)
-                    .setNonce(null)
-                    // Your server's client ID, not your Android client ID.
-                    .setServerClientId(clientId)
-                    .build()
-            )
-            // Automatically sign in when exactly one credential is retrieved.
-            .setAutoSelectEnabled(true)
-            .build()
-}
-
-@Composable
-fun rememberAuthScreenState(
-    activity: Activity
-) = remember {
-    AuthScreenState(activity)
-}
 
 @Composable
 fun AuthScreen(
     modifier: Modifier,
-    nonce: String? = null,
-    oAuthClientId: String = clientId,
     signInAnonymously: () -> Unit,
-    tokenReceived: (token: String, credential: SignInCredential) -> Unit
+    tokenReceived: (token: String) -> Unit
 ) {
 
-    val ctx = LocalContext.current
-    val activity = LocalContext.current as Activity
 
-    val state = rememberAuthScreenState(activity = activity)
-
-    var inProgress by remember {
-        mutableStateOf(false)
-    }
-
-    val activityLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        try {
-            if (result.resultCode == Activity.RESULT_OK) {
-                val oneTapClient = Identity.getSignInClient(activity)
-                val credentials = oneTapClient.getSignInCredentialFromIntent(result.data)
-                val tokenId = credentials.googleIdToken
-                if (tokenId != null) {
-                    tokenReceived(tokenId, credentials)
-                }
-            }
-        } catch (e: ApiException) {
-            Log.e(TAG, "${e.message}")
-        } finally {
-            inProgress = false
-        }
-    }
+    val oneTapSignInState = rememberOneTapSignInState()
 
     Column(
         modifier = modifier
@@ -143,6 +86,14 @@ fun AuthScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        OneTapSignInWithGoogle(
+            state = oneTapSignInState,
+            clientId = webclientId,
+            onTokenIdReceived = tokenReceived,
+            onDialogDismissed = {
+                oneTapSignInState.close()
+            }
+        )
         Text(
             text = "Sign in to play opponents online",
             modifier = Modifier.fillMaxWidth(0.9f),
@@ -188,26 +139,7 @@ fun AuthScreen(
                     .clip(shape)
                     .border(1.dp, Color.LightGray, shape)
                     .clickable {
-                        state.oneTapClient
-                            .beginSignIn(state.signInRequest)
-                            .addOnSuccessListener { result ->
-                                try {
-                                    inProgress = true
-                                    activityLauncher.launch(
-                                        IntentSenderRequest
-                                            .Builder(
-                                                result.pendingIntent.intentSender
-                                            )
-                                            .build()
-                                    )
-                                } catch (e: Exception) {
-                                    inProgress = false
-                                    Log.e(TAG, "${e.message}")
-                                }
-                            }
-                            .addOnFailureListener {
-                                Log.e(TAG, "${it.message}")
-                            }
+                        oneTapSignInState.open()
                     }
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -236,7 +168,7 @@ fun AuthScreen(
                 )
             )
             AnimatedVisibility(
-                visible = inProgress,
+                visible = oneTapSignInState.opened,
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
@@ -250,4 +182,180 @@ fun AuthScreen(
             }
         }
     }
+}
+
+class OneTapSignInState {
+    var opened by mutableStateOf(false)
+        private set
+
+    fun open() {
+        opened = true
+    }
+
+    internal fun close() {
+        opened = false
+    }
+}
+
+@Composable
+fun rememberOneTapSignInState(): OneTapSignInState {
+    return remember { OneTapSignInState() }
+}
+
+
+/**
+ * Composable that allows you to easily integrate One-Tap Sign in with Google
+ * in your project.
+ * @param state - One-Tap Sign in State.
+ * @param clientId - CLIENT ID (Web) of your project, that you can obtain from
+ * a Google Cloud Platform.
+ * @param nonce - Optional nonce that can be used when generating a Google Token ID.
+ * @param onTokenIdReceived - Lambda that will be triggered after a successful
+ * authentication. Returns a Token ID.
+ * @param onDialogDismissed - Lambda that will be triggered when One-Tap dialog
+ * disappears. Returns a message in a form of a string.
+ * */
+@Composable
+fun OneTapSignInWithGoogle(
+    state: OneTapSignInState,
+    clientId: String = webclientId,
+    nonce: String? = null,
+    onTokenIdReceived: (String) -> Unit,
+    onDialogDismissed: (String) -> Unit,
+) {
+    val activity = LocalContext.current as Activity
+    val activityLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        try {
+            if (result.resultCode == Activity.RESULT_OK) {
+                val oneTapClient = Identity.getSignInClient(activity)
+                val credentials = oneTapClient.getSignInCredentialFromIntent(result.data)
+                val tokenId = credentials.googleIdToken
+                if (tokenId != null) {
+                    onTokenIdReceived(tokenId)
+                    state.close()
+                }
+            } else {
+                Log.d(TAG, result.data.toString())
+                onDialogDismissed("Dialog Closed.")
+                state.close()
+            }
+        } catch (e: ApiException) {
+            Log.e(TAG, "${e.message}")
+            when (e.statusCode) {
+                CommonStatusCodes.CANCELED -> {
+                    onDialogDismissed("Dialog Canceled.")
+                    state.close()
+                }
+                CommonStatusCodes.NETWORK_ERROR -> {
+                    onDialogDismissed("Network Error.")
+                    state.close()
+                }
+                else -> {
+                    onDialogDismissed(e.message.toString())
+                    state.close()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = state.opened) {
+        if (state.opened) {
+            signIn(
+                activity = activity,
+                clientId = clientId,
+                nonce = nonce,
+                launchActivityResult = { intentSenderRequest ->
+                    activityLauncher.launch(intentSenderRequest)
+                },
+                onError = {
+                    onDialogDismissed(it)
+                    state.close()
+                }
+            )
+        }
+    }
+}
+
+private fun signIn(
+    activity: Activity,
+    clientId: String,
+    nonce: String?,
+    launchActivityResult: (IntentSenderRequest) -> Unit,
+    onError: (String) -> Unit
+) {
+    val oneTapClient = Identity.getSignInClient(activity)
+    val signInRequest = BeginSignInRequest.builder()
+        .setGoogleIdTokenRequestOptions(
+            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                .setSupported(true)
+                .setNonce(nonce)
+                .setServerClientId(clientId)
+                .setFilterByAuthorizedAccounts(true)
+                .build()
+        )
+        .setAutoSelectEnabled(true)
+        .build()
+
+    oneTapClient.beginSignIn(signInRequest)
+        .addOnSuccessListener { result ->
+            try {
+                launchActivityResult(
+                    IntentSenderRequest.Builder(
+                        result.pendingIntent.intentSender
+                    ).build()
+                )
+            } catch (e: Exception) {
+                onError(e.message.toString())
+            }
+        }
+        .addOnFailureListener {
+            signUp(
+                activity = activity,
+                clientId = clientId,
+                nonce = nonce,
+                launchActivityResult = launchActivityResult,
+                onError = onError
+            )
+            Log.e(TAG, "${it.message} sign in")
+        }
+}
+
+private fun signUp(
+    activity: Activity,
+    clientId: String,
+    nonce: String?,
+    launchActivityResult: (IntentSenderRequest) -> Unit,
+    onError: (String) -> Unit
+) {
+    val oneTapClient = Identity.getSignInClient(activity)
+    val signInRequest = BeginSignInRequest.builder()
+        .setGoogleIdTokenRequestOptions(
+            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                .setSupported(true)
+                .setNonce(nonce)
+                .setServerClientId(clientId)
+                .setFilterByAuthorizedAccounts(false)
+                .build()
+        )
+        .build()
+
+    oneTapClient.beginSignIn(signInRequest)
+        .addOnSuccessListener { result ->
+            try {
+                launchActivityResult(
+                    IntentSenderRequest.Builder(
+                        result.pendingIntent.intentSender
+                    ).build()
+                )
+            } catch (e: Exception) {
+                onError(e.message.toString())
+                Log.e(TAG, "${e.message}")
+            }
+        }
+        .addOnFailureListener {
+            onError("Google Account not Found.")
+            Log.e(TAG, "sign up ${it.message}")
+        }
 }

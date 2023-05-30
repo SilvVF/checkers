@@ -35,10 +35,10 @@ class Auth(
                         ?.let(onAuthed)
                 }
             }
-        ) { token, credential ->
+        ) { token ->
             scope.launch {
                 Log.d("AUTHED scope call", "called")
-                viewModel.signIn(token, credential)
+                viewModel.signIn(token)
                     .catch {
                         it.printStackTrace()
                     }
