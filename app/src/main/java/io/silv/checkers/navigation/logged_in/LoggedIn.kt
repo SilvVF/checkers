@@ -128,6 +128,7 @@ class LoggedIn(
                             AnimatedNavIcon(
                                 icon = Icons.Default.Search,
                                 contentDescription = "Search",
+                                text = "search",
                                 selected = onScreen is LoggedInNavTarget.SearchRooms,
                                 onClick = {
                                     backStack.push(LoggedInNavTarget.SearchRooms)
@@ -136,6 +137,7 @@ class LoggedIn(
                             AnimatedNavIcon(
                                 icon = Icons.Default.Add,
                                 contentDescription = "Add",
+                                text = "create",
                                 onClick = {
                                     backStack.push(LoggedInNavTarget.CreateRoom)
                                 },
@@ -144,6 +146,7 @@ class LoggedIn(
                             AnimatedNavIcon(
                                 icon = Icons.Default.PlayArrow,
                                 contentDescription = "Play Bot",
+                                text = "play bot",
                                 selected = onScreen is LoggedInNavTarget.PlayBot
                             ) {
                                 backStack.push(LoggedInNavTarget.PlayBot)

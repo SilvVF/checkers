@@ -78,6 +78,7 @@ class LoggedOut(
                         AnimatedNavIcon(
                             icon = Icons.Default.AccountCircle,
                             contentDescription = "Log In",
+                            text = "sign in",
                             selected = onScreen is LoggedOutNavTarget.Auth,
                             onClick =  {
                                 backStack.push(LoggedOutNavTarget.Auth)
@@ -86,6 +87,7 @@ class LoggedOut(
                         AnimatedNavIcon(
                             icon = Icons.Default.PlayArrow,
                             contentDescription = "Play Ai",
+                            text = "play bot",
                             onClick = {
                                 backStack.push(LoggedOutNavTarget.PlayBot)
                             },

@@ -16,7 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import io.silv.checkers.Blue
 import io.silv.checkers.Cord
@@ -36,7 +39,7 @@ fun  CheckerBoard(
     onDropAction: (fromCord: Cord, toCord: Cord, piece: Piece) -> Unit
 ) {
         Column(
-            modifier = Modifier.aspectRatio(1f),
+            modifier = modifier.aspectRatio(1f),
         ) {
            board.forEachIndexed { i, row ->
                Row(
@@ -107,6 +110,15 @@ fun Circle(color: Color) = Box(
         .fillMaxSize()
         .clip(CircleShape)
         .background(color)
+        .drawWithContent {
+            val radius = this.size.height / 3f
+            drawContent()
+            drawCircle(
+                brush = Brush.horizontalGradient(colors = listOf(Color.Black.copy(alpha = 0.8f), color)),
+                radius = radius,
+                style = Stroke(width = 4.dp.toPx())
+            )
+        }
 )
 
 @Composable

@@ -85,12 +85,11 @@ fun CreateRoomScreen(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.fillMaxSize()
    ) {
-      Spacer(modifier = Modifier.height(22.dp))
       BasicTextField(
          value = roomName,
          onValueChange = { roomName = it },
          modifier = Modifier
-            .fillMaxWidth(0.8f)
+            .fillMaxWidth(.9f)
             .height(70.dp)
             .onFocusChanged { focused = it.isFocused },
          singleLine = true,

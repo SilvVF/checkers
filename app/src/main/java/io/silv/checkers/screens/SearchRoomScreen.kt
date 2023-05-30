@@ -1,6 +1,7 @@
 package io.silv.checkers.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -39,7 +41,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.silv.checkers.R
 import io.silv.checkers.ui.rememberIsImeVisible
 import io.silv.checkers.ui.theme.PrimaryGreen
@@ -89,13 +90,14 @@ fun SearchRoomScreen(
        }
     }
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         BasicTextField(
             value = query,
             onValueChange = { viewModel.onQueryChanged(it) },
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(.9f)
                 .height(70.dp)
                 .onFocusChanged { focused = it.isFocused },
             singleLine = true,
@@ -104,7 +106,7 @@ fun SearchRoomScreen(
             ),
             cursorBrush = SolidColor(Color.LightGray),
             decorationBox = { innerText ->
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(4.dp)
@@ -116,8 +118,7 @@ fun SearchRoomScreen(
                                 end = Offset(this.size.width, this.size.height)
                             )
                         },
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     if (query.isEmpty()) {
                         Text(
@@ -130,14 +131,27 @@ fun SearchRoomScreen(
                 }
             }
         )
+        rooms.ifEmpty { 
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "searching for rooms", color = Color.LightGray)
+            }
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f, true),
+                .weight(1f, true)
+                .padding(top = 12.dp),
             state = listState,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            item {
+                Text(
+                    text = "tap on a room card to join",
+                    color = Color.LightGray,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
             items(
                 items = rooms,
                 key = { room -> room.id }
@@ -161,10 +175,12 @@ fun SearchRoomScreen(
                     Column(
                         Modifier
                             .fillMaxSize()
-                            .padding(12.dp)) {
-                        Text(text = room.name, color = PrimaryGreen)
-                        Text(text = room.moveTime, color = Color.LightGray)
-                        Text(text = room.dateCreated,color = Color.LightGray)
+                            .padding(12.dp)
+                    ) {
+                        RoomInfoText(label = "room name:", text = room.name)
+                        RoomInfoText(label = "id:", text = room.id)
+                        RoomInfoText(label = "move timer:", text = room.moveTime)
+                        RoomInfoText(label = "created:", text = room.dateCreated)
                     }
                 }
                 Spacer(
@@ -172,5 +188,19 @@ fun SearchRoomScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun RoomInfoText(
+    label: String,
+    text: String,
+    colorLabel: Color = PrimaryGreen,
+    colorText: Color = Color.LightGray,
+) {
+    Row {
+        Text(text = label, color = colorLabel)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, color = colorText)
     }
 }
