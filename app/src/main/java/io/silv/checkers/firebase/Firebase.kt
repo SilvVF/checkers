@@ -44,6 +44,7 @@ fun DatabaseReference.deleteRoomCallbackFlow(roomId: String) = callbackFlow {
     val db = this@deleteRoomCallbackFlow
     db.child(Fb.roomsKey).child(roomId).removeValue()
         .addOnSuccessListener {
+            Log.d("ROOM","deleted $roomId")
             trySend(true)
         }
         .addOnFailureListener {

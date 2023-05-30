@@ -42,7 +42,7 @@ class RootNode(
             is MainNavTarget.LoggedOut -> LoggedOut(buildContext) { user ->
                 backStack.push(MainNavTarget.LoggedIn(user))
             }
-            is MainNavTarget.LoggedIn -> LoggedIn(buildContext) {
+            is MainNavTarget.LoggedIn -> LoggedIn(buildContext, navTarget.user.uid) {
                 logOut()
                 backStack.replace(MainNavTarget.LoggedOut)
             }

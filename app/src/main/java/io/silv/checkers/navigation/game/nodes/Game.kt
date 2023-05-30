@@ -1,5 +1,6 @@
 package io.silv.checkers.navigation.game.nodes
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
@@ -20,8 +22,10 @@ import io.silv.checkers.Cord
 import io.silv.checkers.Piece
 import io.silv.checkers.Red
 import io.silv.checkers.screens.CheckersScreen
+import io.silv.checkers.ui.util.collectEvents
 import io.silv.checkers.usecase.generateInitialBoard
 import io.silv.checkers.viewmodels.CheckerUiState
+import io.silv.checkers.viewmodels.CheckersEvent
 import io.silv.checkers.viewmodels.CheckersViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -36,11 +40,25 @@ class Game(
     override fun View(modifier: Modifier) {
 
         val viewModel: CheckersViewModel = koinViewModel  { parametersOf(roomId) }
+        val ctx = LocalContext.current
+
+        viewModel.collectEvents { event ->
+            when (event) {
+                is CheckersEvent.FailedToDeleteRoom -> Toast.makeText(
+                    ctx,event.reason, Toast.LENGTH_SHORT
+                ).show()
+                is CheckersEvent.MoveFailed ->  Toast.makeText(
+                    ctx,event.reason, Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
         val state by viewModel.uiState.collectAsState()
 
         CheckersScreen(
             state,
+            lastJumpEnd = viewModel.afterJumpEnd,
+            endTurn = viewModel::endTurn
         ) { from: Cord, to: Cord, p: Piece ->
             viewModel.onDropAction(from, to, p)
         }
@@ -50,7 +68,9 @@ class Game(
 @Preview
 @Composable
 fun PreviewCheckerScreen() {
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Black)) {
         Scaffold(
             Modifier.fillMaxSize()
         ) { paddingValues ->
@@ -77,7 +97,9 @@ fun PreviewCheckerScreen() {
                         turnsMatch = true,
                         winner = Blue()
                     ),
-                    onDropAction = { _, _, _ -> }
+                    onDropAction = { _, _, _ -> },
+                    endTurn = {},
+                    lastJumpEnd = null
                 )
             }
         }

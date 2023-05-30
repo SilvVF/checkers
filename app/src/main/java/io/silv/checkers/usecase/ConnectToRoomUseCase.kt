@@ -8,7 +8,6 @@ import io.silv.checkers.firebase.joinRoom
 import io.silv.checkers.firebase.updateUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -26,7 +25,7 @@ class ConnectToRoomUseCase(
                 User(id = userId, joinedRoomId = roomId)
             )
                 .first()
-            if (user.joinedRoomId.isNotEmpty()) {
+            if (user.joinedRoomId.isNotEmpty() && roomId != user.joinedRoomId) {
                 db.deleteRoomCallbackFlow(user.joinedRoomId)
                     .catch {
                         it.printStackTrace()

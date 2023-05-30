@@ -42,7 +42,6 @@ val appModule = module {
 
     viewModel { parameters ->
         CheckersViewModel(
-            savedStateHandle = get(),
             db = get(),
             auth = get(),
             deleteRoomUseCase = get(),

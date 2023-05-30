@@ -17,12 +17,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -42,13 +46,18 @@ import io.silv.checkers.navigation.logged_in.nodes.SearchRooms
 import io.silv.checkers.navigation.logged_out.nodes.PlayBot
 import io.silv.checkers.ui.AnimatedNavIcon
 import io.silv.checkers.ui.dragdrop.DraggableContainer
+import io.silv.checkers.ui.util.collectEvents
+import io.silv.checkers.viewmodels.CreateRoomEvent
+import io.silv.checkers.viewmodels.CreateRoomViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.koin.androidx.compose.koinViewModel
 
 class LoggedIn(
     buildContext: BuildContext,
+    userId: String,
     private val backStack: BackStack<LoggedInNavTarget> = BackStack(
         initialElement = LoggedInNavTarget.SearchRooms,
         savedStateMap = buildContext.savedStateMap
@@ -89,9 +98,22 @@ class LoggedIn(
     override fun View(modifier: Modifier) {
 
         val onScreen by onScreen.collectAsState(initial = LoggedInNavTarget.SearchRooms)
+        val snackbarHostState = remember{ SnackbarHostState() }
+
+        koinViewModel<CreateRoomViewModel>().collectEvents { event ->
+            when (event) {
+                is CreateRoomEvent.CreateRoomError -> snackbarHostState.showSnackbar(
+                    message = event.reason,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+
         DraggableContainer {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 topBar = {
                     TopAppBar(
                         modifier = Modifier.fillMaxWidth(),

@@ -2,6 +2,7 @@ package io.silv.checkers.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -11,11 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -25,8 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +44,8 @@ import io.silv.checkers.viewmodels.CheckerUiState
 @Composable
 fun CheckersScreen(
     state: CheckerUiState,
+    endTurn: () -> Unit,
+    lastJumpEnd: Cord?,
     onDropAction: (from: Cord, to: Cord, piece: Piece) -> Unit
 ) {
     BackHandler {
@@ -63,17 +65,32 @@ fun CheckersScreen(
                 onDropAction(fromCord, toCord, piece)
             }
         )
-        Text(
-            text = buildAnnotatedString {
-                val piece = state.playerPiece.getString()
-                val text = "Your pieces are "
-                append("$text$piece")
-                addStyle(start = 0, end = text.length, style = SpanStyle(color= Color.LightGray))
-                addStyle(start = text.length, end = text.length + piece.length, style = SpanStyle(color=state.playerPiece.color))
-            },
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+        AnimatedVisibility(visible = lastJumpEnd == null) {
+            Row {
+                Text(
+                    text = "Your pieces are ",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.LightGray
+                )
+                Text(
+                    text = state.playerPiece.getString(),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = state.playerPiece.color
+                )
+            }
+        }
+        lastJumpEnd?.let {
+            Button(
+                onClick = { endTurn() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryGreen
+                )
+            ) {
+                Text(text = "End turn", color = Color.LightGray)
+            }
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
@@ -85,7 +102,6 @@ fun CheckersScreen(
                 MoveTimer(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight()
                         .padding(20.dp),
                     time = state.timeToMove,
                     startTime = state.room.moveTimeSeconds
@@ -94,7 +110,6 @@ fun CheckersScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center

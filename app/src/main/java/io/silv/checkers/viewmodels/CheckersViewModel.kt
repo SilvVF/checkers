@@ -1,7 +1,9 @@
 package io.silv.checkers.viewmodels
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.SavedStateHandle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.google.errorprone.annotations.Immutable
 import com.google.firebase.auth.FirebaseAuth
@@ -21,6 +23,8 @@ import io.silv.checkers.usecase.DeleteRoomUseCase
 import io.silv.checkers.usecase.UpdateBoardNoMoveUseCase
 import io.silv.checkers.usecase.UpdateBoardUseCase
 import io.silv.checkers.usecase.checkPieceForLoss
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
@@ -31,17 +35,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CheckersViewModel(
-    savedStateHandle: SavedStateHandle,
     db: DatabaseReference,
     auth: FirebaseAuth,
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val updateBoardUseCase: UpdateBoardUseCase,
     private val updateBoardNoMoveUseCase: UpdateBoardNoMoveUseCase,
-    val roomId: String = savedStateHandle["roomId"] ?: "",
+    val roomId: String,
 ): EventsViewModel<CheckersEvent>() {
 
-    private val userId = auth.currentUser?.uid ?: "user"
-    private var afterJumpEnd: Cord? = null
+    private val userId = auth.currentUser?.uid ?: auth.currentUser?.providerId
+    var afterJumpEnd: Cord? by mutableStateOf(null)
+            private set
 
     private val room = db.roomStateFlow(roomId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), Room())
@@ -133,7 +137,20 @@ class CheckersViewModel(
         }
     }.invokeOnCompletion { moveInProgress = false }
 
-    fun deleteRoom() = viewModelScope.launch {
+    fun endTurn() = viewModelScope.launch {
+        if (!moveInProgress) {
+            moveInProgress = true
+            afterJumpEnd = null
+            updateBoardNoMoveUseCase(board.value, roomId)
+                .onFailure {
+                    eventChannel.send(
+                        CheckersEvent.MoveFailed(it.localizedMessage ?: "Error")
+                    )
+                }
+        }
+    }.invokeOnCompletion { moveInProgress = false }
+
+    fun deleteRoom() = CoroutineScope(Dispatchers.IO).launch {
         retryOnFailure(3) {
             deleteRoomUseCase(roomId)
         }
