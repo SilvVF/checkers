@@ -116,12 +116,11 @@ fun PlayBotScreen(
             }
         }
         Text(text = pieceText, color = Color.LightGray, fontSize = 22.sp ,modifier = Modifier.padding(12.dp))
-        Row {
+        Row(Modifier.weight(0.3f)) {
             CheckersRemaining(
                 modifier = Modifier
                     .padding(20.dp)
-                    .weight(1f)
-                    .fillMaxHeight(),
+                    .weight(1f),
                 board = board,
                 text = "Blue Checkers",
                 piece = Blue()
@@ -129,8 +128,7 @@ fun PlayBotScreen(
             CheckersRemaining(
                 modifier = Modifier
                     .padding(20.dp)
-                    .weight(1f)
-                    .fillMaxHeight(),
+                    .weight(1f),
                 board = board,
                 text = "Red Checkers",
                 piece = Red()
