@@ -157,7 +157,7 @@ fun CreateRoomScreen(
          )
       }
       Text(
-         text = "Time to make a move",
+         text = stringResource(id = R.string.time_to_move),
          color= Color.LightGray,
          fontSize = 22.sp
       )
@@ -177,7 +177,7 @@ fun CreateRoomScreen(
             .imePadding(),
       ) {
          Text(
-            text = "Create room with these settings",
+            text = stringResource(id = R.string.create_room_btn),
             color= Color(0xff18181b),
             fontSize = 17.sp
          )

@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -48,9 +49,11 @@ class CheckersViewModel(
             private set
 
     private val room = db.roomStateFlow(roomId)
+        .catch { it.printStackTrace() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), Room())
 
     private val board = db.boardStateFlow(roomId)
+        .catch { it.printStackTrace() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), Board())
 
 

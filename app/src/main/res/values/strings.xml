@@ -4,4 +4,21 @@
     <string name="google_sign_in">Continue with Google</string>
     <string name="room_name_hint">Enter a room name</string>
     <string name="search_room_hint">search for a room by id or name</string>
+    <string name="sign_in">Sign in to play opponents online</string>
+    <string name="sign_in_anon">Sign in anonymously</string>
+    <string name="your_pieces_are">Your pieces are </string>
+    <string name="end_turn">End turn</string>
+    <string name="current_turn">Current Turn</string>
+    <string name="blue_checkers">Blue Checkers</string>
+    <string name="red_checkers">Red Checkers</string>
+    <string name="time_to_move">Time to move</string>
+    <string name="create_room_btn">Create room with these settings</string>
+    <string name="reset">Reset game</string>
+    <string name="jump_to_top">Jump to top</string>
+    <string name="searching">searching for rooms</string>
+    <string name="tap_to_join">tap on a room card to join</string>
+    <string name="name_label">room name:</string>
+    <string name="id_label">id:</string>
+    <string name="time_label">move timer:</string>
+    <string name="created_label">created:</string>
 </resources>

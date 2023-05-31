@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.silv.checkers.Blue
 import io.silv.checkers.Piece
+import io.silv.checkers.R
 import io.silv.checkers.Red
 import io.silv.checkers.getString
 import io.silv.checkers.ui.CheckerBoard
@@ -98,7 +100,7 @@ fun PlayBotScreen(
                 .fillMaxWidth(0.6f),
         ) {
             Text(
-                text = "Reset game",
+                text = stringResource(id = R.string.reset),
                 color= Color(0xff18181b),
                 fontSize = 17.sp
             )
@@ -122,7 +124,7 @@ fun PlayBotScreen(
                     .padding(20.dp)
                     .weight(1f),
                 board = board,
-                text = "Blue Checkers",
+                text = stringResource(id = R.string.blue_checkers),
                 piece = Blue()
             )
             CheckersRemaining(
@@ -130,7 +132,7 @@ fun PlayBotScreen(
                     .padding(20.dp)
                     .weight(1f),
                 board = board,
-                text = "Red Checkers",
+                text = stringResource(id = R.string.red_checkers),
                 piece = Red()
             )
         }

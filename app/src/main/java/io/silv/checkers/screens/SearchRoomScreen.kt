@@ -85,7 +85,7 @@ fun SearchRoomScreen(
                    disabledContainerColor = Color(0xff262626)
                ),
            ) {
-               Text(text = "Jump to top", color = Color(0xff262626))
+               Text(text = stringResource(id = R.string.jump_to_top), color = Color(0xff262626))
            }
        }
     }
@@ -133,7 +133,7 @@ fun SearchRoomScreen(
         )
         rooms.ifEmpty { 
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "searching for rooms", color = Color.LightGray)
+                Text(text = stringResource(id = R.string.searching), color = Color.LightGray)
             }
         }
         LazyColumn(
@@ -147,7 +147,7 @@ fun SearchRoomScreen(
         ) {
             item {
                 Text(
-                    text = "tap on a room card to join",
+                    text = stringResource(id = R.string.tap_to_join),
                     color = Color.LightGray,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -177,10 +177,18 @@ fun SearchRoomScreen(
                             .fillMaxSize()
                             .padding(12.dp)
                     ) {
-                        RoomInfoText(label = "room name:", text = room.name)
-                        RoomInfoText(label = "id:", text = room.id)
-                        RoomInfoText(label = "move timer:", text = room.moveTime)
-                        RoomInfoText(label = "created:", text = room.dateCreated)
+                        RoomInfoText(
+                            label = stringResource(id = R.string.name_label), text = room.name
+                        )
+                        RoomInfoText(
+                            label = stringResource(id = R.string.id_label), text = room.id
+                        )
+                        RoomInfoText(
+                            label = stringResource(id = R.string.id_label), text = room.moveTime
+                        )
+                        RoomInfoText(
+                            label = stringResource(id = R.string.created_label), text = room.dateCreated
+                        )
                     }
                 }
                 Spacer(

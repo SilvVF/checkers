@@ -2,6 +2,7 @@ package io.silv.checkers.screens
 
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -71,6 +72,7 @@ fun AuthScreen(
 
 
     val oneTapSignInState = rememberOneTapSignInState()
+    val ctx = LocalContext.current
 
     Column(
         modifier = modifier
@@ -92,10 +94,11 @@ fun AuthScreen(
             onTokenIdReceived = tokenReceived,
             onDialogDismissed = {
                 oneTapSignInState.close()
+                Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show()
             }
         )
         Text(
-            text = "Sign in to play opponents online",
+            text = stringResource(R.string.sign_in),
             modifier = Modifier.fillMaxWidth(0.9f),
             textAlign = TextAlign.Center,
             fontSize = 22.sp
@@ -126,7 +129,7 @@ fun AuthScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Sign in anonymously",
+                    text = stringResource(id = R.string.sign_in_anon),
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                 )

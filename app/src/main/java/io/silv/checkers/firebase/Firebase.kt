@@ -54,6 +54,20 @@ fun DatabaseReference.deleteRoomCallbackFlow(roomId: String) = callbackFlow {
     awaitClose()
 }
 
+fun DatabaseReference.deleteBoardCallbackFlow(roomId: String) = callbackFlow {
+    val db = this@deleteBoardCallbackFlow
+    db.child(Fb.boardKey).child(roomId).removeValue()
+        .addOnSuccessListener {
+            Log.d("board","board $roomId")
+            trySend(true)
+        }
+        .addOnFailureListener {
+            Log.d("board","Unable to delete board $roomId, ${it.localizedMessage}")
+            close(it)
+        }
+    awaitClose()
+}
+
 fun DatabaseReference.createRoomFlow(name: String, color: Int, userId: String, time: Int) = callbackFlow {
     val db = this@createRoomFlow
     val key = db.child(Fb.roomsKey).push().key ?: kotlin.run {

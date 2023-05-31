@@ -46,11 +46,18 @@ class MainActivityViewModel(
     }
 
     fun logOut() = viewModelScope.launch {
-        getUserInfoUseCase(auth.currentUser?.uid ?: "")
-            .onSuccess { user ->
-                deleteRoomUseCase(user.joinedRoomId)
-            }
-        auth.signOut()
+        try {
+            getUserInfoUseCase(auth.currentUser?.uid ?: "")
+                .onSuccess { user ->
+                    deleteRoomUseCase(user.joinedRoomId)
+                }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            runCatching  { auth.signOut() }
+        }
+
     }
 
     override fun onCleared() {

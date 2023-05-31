@@ -27,12 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.silv.checkers.Blue
 import io.silv.checkers.Cord
 import io.silv.checkers.Piece
+import io.silv.checkers.R
 import io.silv.checkers.Red
 import io.silv.checkers.getString
 import io.silv.checkers.ui.CheckerBoard
@@ -68,7 +70,7 @@ fun CheckersScreen(
         AnimatedVisibility(visible = lastJumpEnd == null) {
             Row {
                 Text(
-                    text = "Your pieces are ",
+                    text = stringResource(id = R.string.your_pieces_are),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.LightGray
@@ -88,7 +90,7 @@ fun CheckersScreen(
                     containerColor = PrimaryGreen
                 )
             ) {
-                Text(text = "End turn", color = Color.LightGray)
+                Text(text = stringResource(id = R.string.end_turn), color = Color.LightGray)
             }
         }
         Row(
@@ -114,7 +116,7 @@ fun CheckersScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "Current Turn", color = Color.LightGray, fontSize = 18.sp)
+                Text(text = stringResource(id = R.string.current_turn), color = Color.LightGray, fontSize = 18.sp)
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -150,7 +152,7 @@ fun CheckersRemaining(modifier: Modifier, board: List<List<Piece>>) {
                 .padding(20.dp)
                 .weight(1f),
             board = board,
-            text = "Blue Checkers",
+            text = stringResource(id = R.string.blue_checkers),
             piece = Blue()
         )
         CheckersRemaining(
@@ -158,7 +160,7 @@ fun CheckersRemaining(modifier: Modifier, board: List<List<Piece>>) {
                 .padding(20.dp)
                 .weight(1f),
             board = board,
-            text = "Red Checkers",
+            text = stringResource(id = R.string.red_checkers),
             piece = Red()
         )
     }
@@ -172,7 +174,7 @@ fun MoveTimer(modifier: Modifier = Modifier, time: Int, startTime: Int) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Time to move", color = Color.LightGray, fontSize = 18.sp)
+        Text(text = stringResource(id = R.string.time_to_move), color = Color.LightGray, fontSize = 18.sp)
         AnimatedContent(
             modifier = Modifier
                 .weight(1f)

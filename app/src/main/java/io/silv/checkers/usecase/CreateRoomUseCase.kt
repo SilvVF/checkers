@@ -13,40 +13,28 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class CreateRoomUseCase(
     private val db: DatabaseReference
 ) {
 
-    private suspend fun deleteRoomIfJoined(userId: String, roomId: String) =
-        CoroutineScope(Dispatchers.IO).launch {
-            val user = db.getUserCallbackFlow(userId)
-                .first()
-            db.updateUser(
-                User(id = userId, joinedRoomId = roomId)
-            )
-                .first()
-            if (user.joinedRoomId.isNotEmpty() && roomId != user.joinedRoomId) {
-                db.deleteRoomCallbackFlow(user.joinedRoomId)
-                    .catch {
-                        it.printStackTrace()
-                    }
-                    .first()
-            }
+
+    private suspend fun updateUser(user: User) = CoroutineScope(Dispatchers.IO).launch {
+        withTimeout(5000) {
+            db.updateUser(user).first()
         }
+    }
 
     suspend operator fun invoke(name: String, color: Int, userId: String, moveTime: Int): Result<String> {
         return runCatching {
-
             db.createRoomFlow(
                 name, color, userId, moveTime
-            ).catch {
-                it.printStackTrace()
-            }
+            )
                 .onEach {
-                    coroutineScope {
-                        launch { deleteRoomIfJoined(userId, it) }
-                    }
+                    updateUser(
+                        User(userId, it)
+                    )
                 }
                 .first()
         }
