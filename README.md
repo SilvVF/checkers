@@ -13,7 +13,7 @@ Checkers app that uses drag and drop to play. You can play online or agianst a b
 - [Coroutines + Flow](https://kotlinlang.org/docs/coroutines-overview.html)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [Appyx](https://bumble-tech.github.io/appyx/)
-- [Firebase Realtime Database](https://firebase.google.com/](https://firebase.google.com/products/realtime-database)
+- [Firebase Realtime Database](https://firebase.google.com/products/realtime-database)
 - [Firebase Auth](https://firebase.google.com/products/auth)
 
 
