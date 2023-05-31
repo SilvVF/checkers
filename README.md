@@ -12,7 +12,7 @@ Checkers app that uses drag and drop to play. You can play online or agianst a b
 - [Lottie Compose](https://github.com/airbnb/lottie/blob/master/android-compose.md)
 - [Coroutines + Flow](https://kotlinlang.org/docs/coroutines-overview.html)
 - [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [Appyx](https://bumble-tech.github.io/appyx/))
+- [Appyx](https://bumble-tech.github.io/appyx/)
 - [Firebase Realtime Database](https://firebase.google.com/](https://firebase.google.com/products/realtime-database)
 - [Firebase Auth](https://firebase.google.com/products/auth)
 
@@ -23,11 +23,12 @@ through kotlin flows. The ui calls viewmodel function which interact with the Fi
 The app also uses gradle kts with a TOML file to specify dependencies.
 
 
-## App Images 
+## App Images
+
 
 <img src="https://github.com/SilvVF/checkers/assets/98186105/f5f3df07-d88c-4d48-9961-6efa34026593" width=300>
 
-<img src="https://github.com/SilvVF/checkers/assets/98186105/e638be6e-532d-4962-8f9e-c220f5e0fb93" width=300>
+<img src="https://github.com/SilvVF/checkers/assets/98186105/ce689456-42c8-40d6-9c6b-232ffb8b029b" width=300>
 
 <img src="https://github.com/SilvVF/checkers/assets/98186105/c8744cee-56dd-40bc-a030-215eab8c7fcf" width=300>
 
